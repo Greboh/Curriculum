@@ -18,6 +18,7 @@ public static class WebApplicationExtensions
         app.MapDefaultEndpoints();
         
         app.ConfigureOpenApi(serviceOptions.Name);
+        app.ConfigureGraphQL();
 
         app.MapControllers();
 

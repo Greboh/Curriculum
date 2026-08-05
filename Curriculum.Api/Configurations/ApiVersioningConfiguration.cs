@@ -2,7 +2,7 @@ namespace Curriculum.Api.Configurations;
 
 public static class ApiVersioningConfiguration
 {
-    public static void ConfigureVersioning(this IServiceCollection services)
+    public static IServiceCollection ConfigureVersioning(this IServiceCollection services)
     {
         services
             .AddApiVersioning(opt =>
@@ -19,5 +19,7 @@ public static class ApiVersioningConfiguration
                 opt.SubstituteApiVersionInUrl = true;
             })
             .AddOpenApi();
+        
+        return services;
     }
 }

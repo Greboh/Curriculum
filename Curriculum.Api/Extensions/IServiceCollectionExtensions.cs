@@ -13,7 +13,8 @@ public static class IServiceCollectionExtensions
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddProblemDetails();
-        
+
+        services.ConfigureGraphQL();
         services.ConfigureOpenApi();
         services.ConfigureVersioning();
         
