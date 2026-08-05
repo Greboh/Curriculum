@@ -16,7 +16,7 @@ public static class AspireConfiguration
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
-    public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) 
+    public static TBuilder AddAspireDefaults<TBuilder>(this TBuilder builder) 
         where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();

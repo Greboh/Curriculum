@@ -4,12 +4,14 @@ namespace Curriculum.Api.Configurations;
 
 public static class OpenApiConfiguration
 {
-    public static void ConfigureOpenApi(this IServiceCollection services)
+    public static IServiceCollection ConfigureOpenApi(this IServiceCollection services)
     {
         services.AddOpenApi();
+
+        return services;
     }
     
-    public static void ConfigureOpenApi(
+    public static WebApplication ConfigureOpenApi(
         this WebApplication app,
         string title
     )
@@ -29,5 +31,7 @@ public static class OpenApiConfiguration
                 opt.AddDocument(description.GroupName, description.GroupName);
             }
         });
+        
+        return app;
     }
 }
