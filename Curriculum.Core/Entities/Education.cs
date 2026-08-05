@@ -7,4 +7,4 @@ public sealed class Education
     public required string Degree { get; set; }
     public required DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
-}2
+}
