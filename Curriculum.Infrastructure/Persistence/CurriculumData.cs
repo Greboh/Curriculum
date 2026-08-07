@@ -2,18 +2,22 @@ using Curriculum.Core.Entities;
 
 namespace Curriculum.Infrastructure.Persistence;
 
-public static class CurriculumData
+public interface ICurriculumData
 {
-    public static IReadOnlyList<Company> Companies { get; } =
+    IReadOnlyList<Company> Companies { get; }
+    IReadOnlyList<Project> Projects { get; }
+    IReadOnlyList<Education> Educations { get; }
+    IReadOnlyList<Skill> Skills { get; }
+}
+
+public class CurriculumData : ICurriculumData
+{
+    public IReadOnlyList<Company> Companies { get; } =
     [
-        new()
-        {
-            Id = Guid.CreateVersion7(),
-            Name = "Tryg A/S"
-        }
+        new() { Id = Guid.CreateVersion7(), Name = "Tryg A/S" }
     ];
     
-    public static IReadOnlyList<Project> Projects { get; } =
+    public IReadOnlyList<Project> Projects { get; } =
     [
         new() { Id = Guid.CreateVersion7(), Name = "Internal load-test tool" },
         new() { Id = Guid.CreateVersion7(), Name = "Straight-Through Processing (STP) claims" },
@@ -22,7 +26,7 @@ public static class CurriculumData
         new() { Id = Guid.CreateVersion7(), Name = "KPI platform data-ingestion / Orleans ingress" },
     ];
     
-    public static IReadOnlyList<Education> Education { get; } =
+    public IReadOnlyList<Education> Educations { get; } =
     [
         new()
         {
@@ -42,7 +46,7 @@ public static class CurriculumData
         },
     ];
     
-    public static IReadOnlyList<Skill> Skills { get; } =
+    public IReadOnlyList<Skill> Skills { get; } =
     [
         new() { Id = Guid.CreateVersion7(), Name = "C#" },
         new() { Id = Guid.CreateVersion7(), Name = "ASP.NET Core" },
