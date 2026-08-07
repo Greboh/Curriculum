@@ -21,7 +21,7 @@ public class EducationService(ICurriculumData data) : IEducationService
         var education = data.Educations
             .FirstOrDefault(x => x.Id == id);
 
-        if (education == null)
+        if (education is null)
         {
             return new EducationNotFoundError(id);
         }

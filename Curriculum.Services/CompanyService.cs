@@ -21,7 +21,7 @@ public class CompanyService(ICurriculumData data) : ICompanyService
         var company = data.Companies
             .FirstOrDefault(x => x.Id == id);
 
-        if (company == null)
+        if (company is null)
         {
             return new CompanyNotFoundError(id);
         }

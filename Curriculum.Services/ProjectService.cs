@@ -21,7 +21,7 @@ public class ProjectService(ICurriculumData data) : IProjectService
         var project = data.Projects
             .FirstOrDefault(x => x.Id == id);
 
-        if (project == null)
+        if (project is null)
         {
             return new ProjectNotFoundError(id);
         }

@@ -21,7 +21,7 @@ public class SkillService(ICurriculumData data) : ISkillService
         var skill = data.Skills
             .FirstOrDefault(x => x.Id == id);
 
-        if (skill == null)
+        if (skill is null)
         {
             return new SkillNotFoundError(id);
         }
