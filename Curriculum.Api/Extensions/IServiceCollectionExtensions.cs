@@ -12,21 +12,12 @@ public static class IServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.AddControllers();
-        
-        services.
-            AddEndpointsApiExplorer()
-            .AddProblemDetails();
-
         services
-            .ConfigureGraphQL()
-            .ConfigureOpenApi()
-            .ConfigureVersioning();
-
+            .ConfigureGraphQL();
+        
         services
             .AddServices()
             .AddPersistence();
-        
         
         return services;
     }
