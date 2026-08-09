@@ -1,5 +1,4 @@
 using Curriculum.Api.Configurations;
-using Curriculum.Infrastructure.Configurations;
 
 namespace Curriculum.Api.Extensions;
 
@@ -11,8 +10,8 @@ public static class WebApplicationExtensions
     )
     {
         app.UseRouting();
-        
-        app.MapDefaultEndpoints();
+
+        app.ConfigureHealthChecks();
         
         app.ConfigureGraphQL();
         

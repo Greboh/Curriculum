@@ -12,6 +12,8 @@ public static class IServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        services.ConfigureHealthChecks();
+        
         services
             .ConfigureGraphQL();
         
