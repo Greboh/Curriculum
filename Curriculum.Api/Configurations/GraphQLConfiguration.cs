@@ -1,3 +1,4 @@
+using Curriculum.Api.GraphQL;
 using GraphQL;
 
 namespace Curriculum.Api.Configurations;
@@ -6,8 +7,12 @@ public static class GraphQLConfiguration
 {
     public static IServiceCollection ConfigureGraphQL(this IServiceCollection services)
     {
-        services.AddGraphQL(x => x.AddSystemTextJson());
-        
+        services.AddGraphQL(x => x
+            .AddSystemTextJson()
+            .AddGraphTypes(typeof(CurriculumSchema).Assembly)
+            .AddSchema<CurriculumSchema>()
+        );
+
         return services;
     }
 

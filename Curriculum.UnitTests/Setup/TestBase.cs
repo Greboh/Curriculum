@@ -1,5 +1,5 @@
 ﻿using Curriculum.Infrastructure.Persistence;
-using Curriculum.UnitTests.Fakes;
+using NSubstitute.ClearExtensions;
 
 namespace Curriculum.UnitTests.Setup;
 
@@ -10,5 +10,11 @@ public class TestBase : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+        ClearMocks();
+    }
+
+    private void ClearMocks()
+    {
+        CurriculumDataMock.ClearSubstitute();
     }
 }
