@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.git/
+**/.idea/
+**/Curriculum.AppHost/
+**/Curriculum.UnitTests/
+**/Curriculum.IntegrationTests/
+**/Curriculum.Tests.Shared/
+**/*.user
+**/README.md
