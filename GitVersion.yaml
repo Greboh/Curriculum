@@ -1,0 +1,22 @@
+mode: ContinuousDeployment
+branches:
+  main:
+    regex: ^main$
+    mode: ContinuousDeployment
+    tag: ""
+    increment: Patch
+    is-mainline: true
+  pull-request:
+    regex: ^pull/\d+(.*)?
+    mode: ContinuousDeployment
+    tag: rc
+    increment: Inherit
+    prevent-increment:
+      of-merged-branch: true
+  feature:
+    regex: ^features?[/-]
+    mode: ContinuousDeployment
+    tag: alpha
+    increment: Inherit
+ignore:
+  sha: []
