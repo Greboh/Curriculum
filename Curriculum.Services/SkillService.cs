@@ -9,6 +9,8 @@ public interface ISkillService
 {
     IReadOnlyList<Skill> GetAll();
     Result<Skill> GetById(Guid id);
+    Result<Skill> Create(string name);
+    Result<bool> Delete(string name);
 }
 
 public class SkillService(ICurriculumData data) : ISkillService
@@ -27,5 +29,43 @@ public class SkillService(ICurriculumData data) : ISkillService
         }
 
         return skill;
+    }
+
+    public Result<Skill> Create(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return new SkillValidationError(
+                name,
+                new Dictionary<string, object>
+                {
+                    { "Name", "Is Null or Empty" }
+                }
+            );
+        }
+
+        var skill = new Skill
+        {
+            Id = Guid.CreateVersion7(),
+            Name = name.Trim()
+        };
+        
+        return data.CreateSkill(skill);
+    }
+
+    public Result<bool> Delete(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return new SkillValidationError(
+                name,
+                new Dictionary<string, object>
+                {
+                    { "Name", "Is Null or Empty" }
+                }
+            );
+        }
+
+        return data.DeleteSkill(name);
     }
 }

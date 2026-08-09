@@ -7,5 +7,6 @@ public class CurriculumSchema : Schema
     public CurriculumSchema(IServiceProvider provider) : base(provider)
     {
         Query = provider.GetRequiredService<Query>();
+        Mutation = provider.GetRequiredService<Mutation>();
     }
 }

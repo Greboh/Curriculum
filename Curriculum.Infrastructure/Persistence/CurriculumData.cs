@@ -7,7 +7,12 @@ public interface ICurriculumData
     IReadOnlyList<Company> Companies { get; }
     IReadOnlyList<Project> Projects { get; }
     IReadOnlyList<Education> Educations { get; }
+    
     IReadOnlyList<Skill> Skills { get; }
+    Skill CreateSkill(Skill skill);
+    
+    /// <returns>Returns true if a skill was deleted, otherwise false.</returns>
+    bool DeleteSkill(string name);
 }
 
 public class CurriculumData : ICurriculumData
@@ -45,8 +50,8 @@ public class CurriculumData : ICurriculumData
             EndDate = new(2024, 12, 31),
         },
     ];
-    
-    public IReadOnlyList<Skill> Skills { get; } =
+
+    private readonly List<Skill> _skills =
     [
         new() { Id = Guid.CreateVersion7(), Name = "C#" },
         new() { Id = Guid.CreateVersion7(), Name = "ASP.NET Core" },
@@ -63,4 +68,23 @@ public class CurriculumData : ICurriculumData
         new() { Id = Guid.CreateVersion7(), Name = "ArgoCD" },
         new() { Id = Guid.CreateVersion7(), Name = "Prompt Engineering / LLM integration" },
     ];
+
+    public IReadOnlyList<Skill> Skills => _skills;
+
+    public Skill CreateSkill(Skill skill)
+    {
+        _skills.Add(skill);
+        return skill;
+    }
+
+    public bool DeleteSkill(string name)
+    {
+        var skill = _skills.FirstOrDefault(x => x.Name == name);
+        if (skill is not null)
+        {
+            _skills.Remove(skill);
+        }
+
+        return skill is not null;
+    }
 }

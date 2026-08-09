@@ -11,6 +11,8 @@ namespace Curriculum.IntegrationTests.GraphQL;
 
 public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factory)
 {
+ 
+    
     [Fact]
     public async Task Skills_DataContainsSkills_ShouldReturnAllSkills()
     {
@@ -157,4 +159,5 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
     private sealed record SkillsResponses(Skill[] Skills);
 
     private sealed record SkillResponse(Skill? Skill);
+    
 }
