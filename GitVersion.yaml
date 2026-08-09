@@ -3,17 +3,19 @@ mode: ContinuousDeployment
 
 branches:
   main:
+    mode: ContinuousDeployment
     label: ""
     increment: Patch
     is-main-branch: true
 
   pull-request:
-    mode: ContinuousDeployment
+    mode: ContinuousDelivery
     label: rc
     increment: Inherit
     prevent-increment:
       of-merged-branch: true
 
   feature:
+    mode: ContinuousDelivery
     label: alpha
     increment: Inherit
