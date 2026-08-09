@@ -40,7 +40,6 @@ jobs:
         id: gitversion
         uses: gittools/actions/gitversion/execute@v4.7.0
         with:
-          useConfigFile: true
           configFilePath: GitVersion.yaml
 
       - name: Summary
