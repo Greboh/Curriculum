@@ -9,7 +9,6 @@
   </Folder>
   <Project Path="Curriculum.Api/Curriculum.Api.csproj" />
   <Project Path="Curriculum.AppHost/Curriculum.AppHost.csproj" />
-  <Project Path="Curriculum.Contracts/Curriculum.Contracts.csproj" />
   <Project Path="Curriculum.Core/Curriculum.Core.csproj" />
   <Project Path="Curriculum.Infrastructure/Curriculum.Infrastructure.csproj" />
   <Project Path="Curriculum.Services/Curriculum.Services.csproj" />
