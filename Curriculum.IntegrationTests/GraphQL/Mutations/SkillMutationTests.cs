@@ -95,7 +95,7 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             .Should()
             .Be(expectation.Message);
         
-        response.Data
+        response.Data.CreateSkill
             .Should()
             .BeNull();
     }

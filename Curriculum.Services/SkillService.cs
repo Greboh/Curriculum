@@ -33,7 +33,7 @@ public class SkillService(ICurriculumData data) : ISkillService
 
     public Result<Skill> Create(string name)
     {
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             return new SkillValidationError(
                 name,
@@ -55,7 +55,7 @@ public class SkillService(ICurriculumData data) : ISkillService
 
     public Result<bool> Delete(string name)
     {
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             return new SkillValidationError(
                 name,
