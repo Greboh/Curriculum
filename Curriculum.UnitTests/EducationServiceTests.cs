@@ -1,7 +1,7 @@
 ﻿using Curriculum.Core.Entities;
 using Curriculum.Services;
 using Curriculum.Services.Errors;
-using Curriculum.UnitTests.Fakes;
+using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
 using FluentAssertions;
 using NSubstitute;
@@ -35,7 +35,23 @@ public class EducationServiceTests : TestBase
             .Should()
             .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
     }
-    
+
+    [Fact]
+    public void GetAll_DataDoesNotContainEducations_ShouldReturnEmptyList()
+    {
+        // Arrange
+        CurriculumDataMock.Educations
+            .Returns([]);
+        
+        // Act
+        var result = _uut.GetAll();
+
+        // Assert
+        result
+            .Should()
+            .BeEmpty();
+    }
+
     [Fact]
     public void GetById_DataContainsEducationWithMatchingId_ShouldReturnEducationWithMatchingId()
     {
@@ -55,23 +71,7 @@ public class EducationServiceTests : TestBase
             .Should()
             .BeEquivalentTo(expectation);
     }
-    
-    [Fact]
-    public void GetAll_DataDoesNotContainEducations_ShouldReturnEmptyList()
-    {
-        // Arrange
-        CurriculumDataMock.Educations
-            .Returns([]);
-        
-        // Act
-        var result = _uut.GetAll();
 
-        // Assert
-        result
-            .Should()
-            .BeEquivalentTo(new List<Education>(), opt => opt.WithStrictOrdering());
-    }
-    
     [Fact]
     public void GetById_DataDoesNotContainEducationWithMatchingId_ShouldReturnNotFoundError()
     {

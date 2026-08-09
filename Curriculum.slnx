@@ -3,6 +3,8 @@
     <File Path=".gitignore" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="Curriculum.IntegrationTests/Curriculum.IntegrationTests.csproj" />
+    <Project Path="Curriculum.Tests.Shared\Curriculum.Tests.Shared.csproj" />
     <Project Path="Curriculum.UnitTests/Curriculum.UnitTests.csproj" />
   </Folder>
   <Project Path="Curriculum.Api/Curriculum.Api.csproj" />

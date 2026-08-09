@@ -1,8 +1,9 @@
-﻿using Curriculum.Core.Results;
+﻿using Curriculum.Core.Entities;
+using Curriculum.Core.Results;
 
 namespace Curriculum.Services.Errors;
 
 public record EducationNotFoundError(
     Guid Id,
     IDictionary<string, object?>? HttpExtensions = null
-    ) : NotFoundError($"Education with id {Id} not found.", HttpExtensions);
+    ) : NotFoundError<Education>($"Education with id {Id} not found.", HttpExtensions);

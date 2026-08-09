@@ -6,8 +6,11 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-    
+
     <ItemGroup>
+        <PackageReference Include="GraphQL.Client" Version="6.1.0" />
+        <PackageReference Include="GraphQL.Client.Serializer.SystemTextJson" Version="6.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
         <PackageReference Include="xunit" Version="2.9.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/>
@@ -15,8 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Curriculum.Infrastructure\Curriculum.Infrastructure.csproj" />
-      <ProjectReference Include="..\Curriculum.Services\Curriculum.Services.csproj" />
+      <ProjectReference Include="..\Curriculum.Api\Curriculum.Api.csproj" />
       <ProjectReference Include="..\Curriculum.Tests.Shared\Curriculum.Tests.Shared.csproj" />
     </ItemGroup>
 

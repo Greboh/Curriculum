@@ -1,7 +1,6 @@
 ﻿using Curriculum.Core.Entities;
-using Curriculum.Infrastructure.Persistence;
 
-namespace Curriculum.UnitTests.Fakes;
+namespace Curriculum.Tests.Shared;
 
 public static class FakeCurriculumData
 {

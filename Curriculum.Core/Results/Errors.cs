@@ -2,8 +2,8 @@
 
 namespace Curriculum.Core.Results;
 
-public record NotFoundError(
+public record NotFoundError<T>(
     string Message,
     IDictionary<string, object?>? HttpExtensions = null
-) : BaseError(Message, HttpStatusCode.NotFound, "Not Found", HttpExtensions);
+) : BaseError(Message, HttpStatusCode.NotFound, $"Failed to find {typeof(T).Name}", HttpExtensions);
 

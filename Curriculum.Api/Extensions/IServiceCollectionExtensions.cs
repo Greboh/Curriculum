@@ -1,5 +1,7 @@
 
 using Curriculum.Api.Configurations;
+using Curriculum.Infrastructure.Persistence;
+using Curriculum.Services;
 
 namespace Curriculum.Api.Extensions;
 
@@ -11,13 +13,38 @@ public static class IServiceCollectionExtensions
     )
     {
         services.AddControllers();
-        services.AddEndpointsApiExplorer();
-        services.AddProblemDetails();
-
-        services.ConfigureGraphQL();
-        services.ConfigureOpenApi();
-        services.ConfigureVersioning();
         
+        services.
+            AddEndpointsApiExplorer()
+            .AddProblemDetails();
+
+        services
+            .ConfigureGraphQL()
+            .ConfigureOpenApi()
+            .ConfigureVersioning();
+
+        services
+            .AddServices()
+            .AddPersistence();
+        
+        
+        return services;
+    }
+
+    private static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<IEducationService, EducationService>();
+        services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<ISkillService, SkillService>();
+        
+        return services;
+    }
+
+    private static IServiceCollection AddPersistence(this IServiceCollection services)
+    {
+        services.AddSingleton<ICurriculumData, CurriculumData>();
+
         return services;
     }
 }
