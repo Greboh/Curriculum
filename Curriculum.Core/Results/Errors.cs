@@ -15,4 +15,4 @@ public record ConflictError<T>(
 public record ValidationError<T>(
     string Message,
     IDictionary<string, object> HttpExtensions
-) : BaseError(Message, HttpStatusCode.Conflict, $"Validation failed for {typeof(T).Name}", HttpExtensions!);
+) : BaseError(Message, HttpStatusCode.BadRequest, $"Validation failed for {typeof(T).Name}", HttpExtensions!);
