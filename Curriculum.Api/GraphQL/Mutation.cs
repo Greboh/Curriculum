@@ -15,7 +15,7 @@ public sealed class Mutation : ObjectGraphType
 
     private void ResolveSkill()
     {
-        Field<NonNullGraphType<SkillType>>("createSkill")
+        Field<SkillType>("createSkill")
             .Argument<NonNullGraphType<StringGraphType>>("name")
             .Resolve(ctx =>
             {
