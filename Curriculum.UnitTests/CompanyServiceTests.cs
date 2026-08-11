@@ -53,39 +53,75 @@ public class CompanyServiceTests : TestBase
     }
 
     [Fact]
-    public void GetById_DataContainsCompanyWithMatchingId_ShouldReturnCompanyWithMatchingId()
+    public void Get_ById_DataContainsCompany_ShouldReturnCompany()
     {
         // Arrange
         var id = FakeCurriculumData.Companies[0].Id;
         
-        CurriculumDataMock.Companies
-            .Returns(FakeCurriculumData.Companies);
-
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
+        
         var expectation = FakeCurriculumData.Companies[0];
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-
+    
     [Fact]
-    public void GetById_DataDoesNotContainCompanyWithMatchingId_ShouldReturnNotFoundError()
+    public void Get_ById_DataDoesNotContainCompany_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Companies[0].Id;
         
-        CurriculumDataMock.Companies
-            .Returns([]);
-
+        CurriculumDataMock.Companies.Returns([]);
+        
         var expectation = new CompanyNotFoundError(id);
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
+        // Assert
+        result.Error
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataContainsCompany_ShouldReturnCompany()
+    {
+        // Arrange
+        var name = FakeCurriculumData.Companies[0].Name;
+        
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
+        
+        var expectation = FakeCurriculumData.Companies[0];
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
+        // Assert
+        result.Value
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataDoesNotContainCompany_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        const string name = "Missing";
+        
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
+        
+        var expectation = new CompanyNotFoundError(name);
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
         // Assert
         result.Error
             .Should()

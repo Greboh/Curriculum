@@ -101,7 +101,7 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
     }
 
     [Fact]
-    public async Task DeleteSkill_SkillExists_ShouldReturnDeletedSkill()
+    public async Task DeleteSkill_ByName_SkillExists_ShouldReturnDeletedSkill()
     {
         // Arrange
         const string name = "C#";
@@ -110,28 +110,27 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             Id = Guid.CreateVersion7(),
             Name = name
         };
-        
         var request = new GraphQLRequest
         {
-            Query =
-                """
-                mutation ($name: String!) {
-                  deleteSkill(name: $name) {
-                    id
-                    name
-                  }
-                }
-                """,
-            Variables = new { name }
+            Query = """
+                    mutation ($by: ByIdOrName!) {
+                      deleteSkill(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { name } }
         };
         CurriculumDataMock
-            .DeleteSkill(name)
+            .DeleteSkill(null, name)
             .Returns(deletedSkill);
-        var expectation = new DeleteSkillResponse(deletedSkill);
         
+        var expectation = new DeleteSkillResponse(deletedSkill);
+
         // Act
         var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
-        
+
         // Assert
         response.Errors
             .Should()
@@ -143,33 +142,32 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
     }
 
     [Fact]
-    public async Task DeleteSkill_SkillDoesNotExist_ShouldReturnNotFoundError()
+    public async Task DeleteSkill_ByName_SkillDoesNotExist_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
         var request = new GraphQLRequest
         {
-            Query =
-                """
-                mutation ($name: String!) {
-                  deleteSkill(name: $name) {
-                    id
-                    name
-                  }
-                }
-                """,
-            Variables = new { name }
+            Query = """
+                    mutation ($by: ByIdOrName!) {
+                      deleteSkill(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { name } }
         };
         
         CurriculumDataMock
-            .DeleteSkill(name)
+            .DeleteSkill(null, name)
             .Returns((Skill?)null);
         
         var expectation = new SkillNotFoundError(name);
-        
+
         // Act
         var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
-        
+
         // Assert
         response.Errors
             .Should()
@@ -183,37 +181,75 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             .Should()
             .BeNull();
     }
-
+    
     [Fact]
-    public async Task DeleteSkill_NameIsNullOrEmpty_ShouldReturnValidationError()
+    public async Task DeleteSkill_ById_SkillExists_ShouldReturnDeletedSkill()
     {
         // Arrange
-        const string name = "";
+        var id = Guid.CreateVersion7();
+        var deletedSkill = new Skill
+        {
+            Id = id,
+            Name = string.Empty
+        };
         var request = new GraphQLRequest
         {
-            Query =
-                """
-                mutation ($name: String!) {
-                  deleteSkill(name: $name) {
-                    id
-                    name
-                  }
-                }
-                """,
-            Variables = new { name }
+            Query = """
+                    mutation ($by: ByIdOrName!) {
+                      deleteSkill(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { id } }
         };
+        CurriculumDataMock
+            .DeleteSkill(id, null)
+            .Returns(deletedSkill);
         
-        var expectation = new SkillValidationError(
-            name,
-            new Dictionary<string, object>
-            {
-                { "Name", "Is Null or Empty" }
-                
-            });
-        
+        var expectation = new DeleteSkillResponse(deletedSkill);
+
         // Act
         var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
+
+        // Assert
+        response.Errors
+            .Should()
+            .BeNullOrEmpty();
         
+        response.Data
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+
+    [Fact]
+    public async Task DeleteSkill_ById_SkillDoesNotExist_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        var id = Guid.Empty;
+        var request = new GraphQLRequest
+        {
+            Query = """
+                    mutation ($by: ByIdOrName!) {
+                      deleteSkill(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { id } }
+        };
+        
+        CurriculumDataMock
+            .DeleteSkill(id, null)
+            .Returns((Skill?)null);
+        
+        var expectation = new SkillNotFoundError(id);
+
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
+
         // Assert
         response.Errors
             .Should()

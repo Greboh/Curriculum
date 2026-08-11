@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Curriculum.Api\Curriculum.Api.csproj" />
       <ProjectReference Include="..\Curriculum.Infrastructure\Curriculum.Infrastructure.csproj" />
       <ProjectReference Include="..\Curriculum.Services\Curriculum.Services.csproj" />
       <ProjectReference Include="..\Curriculum.Tests.Shared\Curriculum.Tests.Shared.csproj" />

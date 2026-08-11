@@ -1,5 +1,6 @@
 using Curriculum.Api.Extensions;
-using Curriculum.Api.GraphQL.Types;
+using Curriculum.Api.GraphQL.InputTypes;
+using Curriculum.Api.GraphQL.ObjectTypes;
 using Curriculum.Services;
 using GraphQL;
 using GraphQL.Types;
@@ -28,14 +29,14 @@ public sealed class Mutation : ObjectGraphType
             });
 
         Field<SkillType>("deleteSkill")
-            .Argument<NonNullGraphType<StringGraphType>>("name")
+            .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
             .Resolve(ctx =>
             {
-                var name = ctx.GetArgument<string>("name");
+                var by = ctx.GetArgument<ByIdOrName>("by");
 
                 return ctx.RequestServices!
                     .GetRequiredService<ISkillService>()
-                    .Delete(name)
+                    .Delete(by.Id, by.Name)
                     .GetValueOrAddError(ctx);
             });
     }

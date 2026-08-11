@@ -77,75 +77,78 @@ public class SkillServiceTests : TestBase
     }
 
     [Fact]
-    public void Delete_SkillExists_ShouldReturnDeletedSkill()
+    public void Delete_ByName_SkillExists_ShouldReturnDeletedSkill()
     {
         // Arrange
         const string name = "C#";
+        
         var deletedSkill = new Skill
         {
             Id = Guid.CreateVersion7(),
             Name = name
         };
-
+       
         CurriculumDataMock
-            .DeleteSkill(name)
+            .DeleteSkill(null, name)
             .Returns(deletedSkill);
-
+       
         // Act
-        var result = _uut.Delete(name);
-
+        var result = _uut.Delete(null, name);
+       
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(deletedSkill);
-
+        result.Value
+            .Should()
+            .BeEquivalentTo(deletedSkill);
+       
         CurriculumDataMock
             .Received(1)
-            .DeleteSkill(name);
+            .DeleteSkill(null, name);
     }
-
     [Fact]
-    public void Delete_SkillDoesNotExist_ShouldReturnNotFoundError()
+    public void Delete_ById_SkillExists_ShouldReturnDeletedSkill()
+    {
+        // Arrange
+        var deletedSkill = new Skill
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "C#"
+        };
+        
+        CurriculumDataMock
+            .DeleteSkill(deletedSkill.Id, null)
+            .Returns(deletedSkill);
+       
+        // Act
+        var result = _uut.Delete(deletedSkill.Id, null);
+        
+        // Assert
+        result.Value
+            .Should()
+            .BeEquivalentTo(deletedSkill);
+        
+        CurriculumDataMock
+            .Received(1)
+            .DeleteSkill(deletedSkill.Id, null);
+    }
+    [Fact]
+    public void Delete_ByName_SkillDoesNotExist_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
+       
         CurriculumDataMock
-            .DeleteSkill(name)
+            .DeleteSkill(null, name)
             .Returns((Skill?)null);
-
+      
         var expectation = new SkillNotFoundError(name);
-
+       
         // Act
-        var result = _uut.Delete(name);
-
+        var result = _uut.Delete(null, name);
+       
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Value.Should().BeNull();
-        result.Error.Should().BeEquivalentTo(expectation);
-    }
-
-    [Fact]
-    public void Delete_NameIsNullOrEmpty_ShouldReturnValidationError()
-    {
-        // Arrange
-        const string name = "";
-        var expectation = new SkillValidationError(
-            name,
-            new Dictionary<string, object>
-            {
-                { "Name", "Is Null or Empty" }
-            }
-        );
-
-        // Act
-        var result = _uut.Delete(name);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Should().BeEquivalentTo(expectation);
-
-        CurriculumDataMock
-            .DidNotReceive()
-            .DeleteSkill(Arg.Any<string>());
+        result.Error
+            .Should()
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
@@ -183,39 +186,75 @@ public class SkillServiceTests : TestBase
     }
 
     [Fact]
-    public void GetById_DataContainsSkillWithMatchingId_ShouldReturnSkillWithMatchingId()
+    public void Get_ById_DataContainsSkill_ShouldReturnSkill()
     {
         // Arrange
         var id = FakeCurriculumData.Skills[0].Id;
-
-        CurriculumDataMock.Skills
-            .Returns(FakeCurriculumData.Skills);
-
+        
+        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
+        
         var expectation = FakeCurriculumData.Skills[0];
-
+        
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-
+    
     [Fact]
-    public void GetById_DataDoesNotContainSkillWithMatchingId_ShouldReturnNotFoundError()
+    public void Get_ById_DataDoesNotContainSkill_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Skills[0].Id;
-
-        CurriculumDataMock.Skills
-            .Returns([]);
-
+        
+        CurriculumDataMock.Skills.Returns([]);
+        
         var expectation = new SkillNotFoundError(id);
-
+        
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
+        // Assert
+        result.Error
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataContainsSkill_ShouldReturnSkill()
+    {
+        // Arrange
+        var name = FakeCurriculumData.Skills[0].Name;
+        
+        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
+        
+        var expectation = FakeCurriculumData.Skills[0];
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
+        // Assert
+        result.Value
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataDoesNotContainSkill_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        const string name = "Missing";
+        
+        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
+        
+        var expectation = new SkillNotFoundError(name);
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
         // Assert
         result.Error
             .Should()

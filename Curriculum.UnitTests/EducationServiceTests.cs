@@ -53,39 +53,73 @@ public class EducationServiceTests : TestBase
     }
 
     [Fact]
-    public void GetById_DataContainsEducationWithMatchingId_ShouldReturnEducationWithMatchingId()
+    public void Get_ById_DataContainsEducation_ShouldReturnEducation()
     {
         // Arrange
         var id = FakeCurriculumData.Educations[0].Id;
         
-        CurriculumDataMock.Educations
-            .Returns(FakeCurriculumData.Educations);
-
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
         var expectation = FakeCurriculumData.Educations[0];
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-
     [Fact]
-    public void GetById_DataDoesNotContainEducationWithMatchingId_ShouldReturnNotFoundError()
+    public void Get_ById_DataDoesNotContainEducation_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Educations[0].Id;
         
-        CurriculumDataMock.Educations
-            .Returns([]);
-
+        CurriculumDataMock.Educations.Returns([]);
+        
         var expectation = new EducationNotFoundError(id);
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
+        // Assert
+        result.Error
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    [Fact]
+    public void Get_ByInstitution_DataContainsEducation_ShouldReturnEducation()
+    {
+        // Arrange
+        var institution = FakeCurriculumData.Educations[0].Institution;
+        
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
+        var expectation = FakeCurriculumData.Educations[0];
+        
+        // Act
+        var result = _uut.Get(null, institution);
+        
+        // Assert
+        result.Value
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByInstitution_DataDoesNotContainEducation_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        const string institution = "Missing";
+        
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
+        var expectation = new EducationNotFoundError(institution);
+        
+        // Act
+        var result = _uut.Get(null, institution);
+        
         // Assert
         result.Error
             .Should()

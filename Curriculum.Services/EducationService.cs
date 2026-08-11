@@ -8,7 +8,7 @@ namespace Curriculum.Services;
 public interface IEducationService
 {
     IReadOnlyList<Education> GetAll();
-    Result<Education> GetById(Guid id);
+    Result<Education> Get(Guid? id, string? institution);
 }
 
 public class EducationService(ICurriculumData data) : IEducationService
@@ -16,16 +16,25 @@ public class EducationService(ICurriculumData data) : IEducationService
     public IReadOnlyList<Education> GetAll()
         => data.Educations;
 
-    public Result<Education> GetById(Guid id)
+    public Result<Education> Get(Guid? id, string? institution)
     {
-        var education = data.Educations
-            .FirstOrDefault(x => x.Id == id);
-
-        if (education is null)
+        Education? education;
+        
+        if (id.HasValue)
         {
-            return new EducationNotFoundError(id);
+            education = data.Educations
+                .FirstOrDefault(x => x.Id == id.Value);
+            
+            return education is null
+                ? new EducationNotFoundError(id.Value)
+                : education;
         }
 
-        return education;
+        education = data.Educations
+            .FirstOrDefault(x => x.Institution == institution?.Trim());
+        
+        return education is null
+            ? new EducationNotFoundError(institution!)
+            : education;
     }
 }

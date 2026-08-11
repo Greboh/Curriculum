@@ -1,7 +1,7 @@
 using Curriculum.Core.Entities;
 using GraphQL.Types;
 
-namespace Curriculum.Api.GraphQL.Types;
+namespace Curriculum.Api.GraphQL.ObjectTypes;
 
 public sealed class ProjectType : ObjectGraphType<Project>
 {

@@ -80,27 +80,25 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
     }
 
     [Fact]
-    public async Task Project_DataContainsProjectWithMatchingId_ShouldReturnProject()
+    public async Task Project_ById_ShouldReturnProject()
     {
         // Arrange
-        CurriculumDataMock.Projects
-            .Returns(FakeCurriculumData.Projects);
-
         var expectation = FakeCurriculumData.Projects[0];
-
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      project(id: $id) {
+                    query ($by: ByIdOrName!) {
+                      project(by: $by) {
                         id
                         name
                       }
                     }
                     """,
-            Variables = new { id = expectation.Id }
+            Variables = new { by = new { id = expectation.Id } }
         };
 
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
         // Act
         var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);
 
@@ -108,49 +106,80 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
         response.Errors
             .Should()
             .BeNullOrEmpty();
-
+        
         response.Data.Project
             .Should()
             .BeEquivalentTo(expectation);
     }
 
     [Fact]
-    public async Task Project_DataDoesNotContainProjectWithMatchingId_ShouldReturnNotFoundError()
+    public async Task Project_ByName_ShouldReturnProject()
     {
         // Arrange
-        CurriculumDataMock.Projects
-            .Returns(FakeCurriculumData.Projects);
-
-        var missingId = Guid.CreateVersion7();
+        var expectation = FakeCurriculumData.Projects[0];
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      project(id: $id) {
+                    query ($by: ByIdOrName!) {
+                      project(by: $by) {
                         id
                         name
                       }
                     }
                     """,
-            Variables = new { id = missingId }
+            Variables = new { by = new { name = expectation.Name } }
         };
 
-        var expectation = new ProjectNotFoundError(missingId);
-
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
         // Act
         var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);
 
         // Assert
         response.Errors
             .Should()
-            .NotBeNullOrEmpty();
-
-        response.Errors![0].Message
-            .Should()
-            .BeEquivalentTo(expectation.Message);
-
+            .BeNullOrEmpty();
+        
         response.Data.Project
             .Should()
+            .BeEquivalentTo(expectation);
+    }
+
+    [Fact]
+    public async Task Project_ById_Missing_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        var missingId = Guid.CreateVersion7();
+        var expectation = new ProjectNotFoundError(missingId);
+        var request = new GraphQLRequest
+        {
+            Query = """
+                    query ($by: ByIdOrName!) {
+                      project(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { id = missingId } }
+        };
+
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);
+
+        // Assert
+        response.Errors
+            .Should().
+            NotBeNullOrEmpty();
+        
+        response.Errors![0].Message
+            .Should()
+            .Be(expectation.Message);
+        
+        response.Data.Project.
+            Should()
             .BeNull();
     }
 
