@@ -11,8 +11,8 @@ public interface ICurriculumData
     IReadOnlyList<Skill> Skills { get; }
     Skill CreateSkill(Skill skill);
     
-    /// <returns>Returns true if a skill was deleted, otherwise false.</returns>
-    bool DeleteSkill(string name);
+    /// <returns>Returns deleted skill, or null if the skill doesn't exist.</returns>
+    Skill? DeleteSkill(string name);
 }
 
 public class CurriculumData : ICurriculumData
@@ -77,7 +77,7 @@ public class CurriculumData : ICurriculumData
         return skill;
     }
 
-    public bool DeleteSkill(string name)
+    public Skill? DeleteSkill(string name)
     {
         var skill = _skills.FirstOrDefault(x => x.Name == name);
         if (skill is not null)
@@ -85,6 +85,6 @@ public class CurriculumData : ICurriculumData
             _skills.Remove(skill);
         }
 
-        return skill is not null;
+        return skill;
     }
 }

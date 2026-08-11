@@ -73,8 +73,8 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
                 }
                 """,
             Variables = new { name }
-        }; 
-        
+        };
+
         var expectation = new SkillValidationError(
             name,
             new Dictionary<string, object>
@@ -85,6 +85,90 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
 
         // Act
         var response = await GraphQLClient.SendQueryAsync<CreateSkillResponse>(request);
+
+        // Assert
+        response.Errors
+            .Should()
+            .NotBeNullOrEmpty();
+
+        response.Errors![0].Message
+            .Should()
+            .Be(expectation.Message);
+
+        response.Data.CreateSkill
+            .Should()
+            .BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteSkill_SkillExists_ShouldReturnDeletedSkill()
+    {
+        // Arrange
+        const string name = "C#";
+        var deletedSkill = new Skill
+        {
+            Id = Guid.CreateVersion7(),
+            Name = name
+        };
+        
+        var request = new GraphQLRequest
+        {
+            Query =
+                """
+                mutation ($name: String!) {
+                  deleteSkill(name: $name) {
+                    id
+                    name
+                  }
+                }
+                """,
+            Variables = new { name }
+        };
+        CurriculumDataMock
+            .DeleteSkill(name)
+            .Returns(deletedSkill);
+        var expectation = new DeleteSkillResponse(deletedSkill);
+        
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
+        
+        // Assert
+        response.Errors
+            .Should()
+            .BeNullOrEmpty();
+        
+        response.Data
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+
+    [Fact]
+    public async Task DeleteSkill_SkillDoesNotExist_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        const string name = "Missing";
+        var request = new GraphQLRequest
+        {
+            Query =
+                """
+                mutation ($name: String!) {
+                  deleteSkill(name: $name) {
+                    id
+                    name
+                  }
+                }
+                """,
+            Variables = new { name }
+        };
+        
+        CurriculumDataMock
+            .DeleteSkill(name)
+            .Returns((Skill?)null);
+        
+        var expectation = new SkillNotFoundError(name);
+        
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
         
         // Assert
         response.Errors
@@ -95,79 +179,9 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             .Should()
             .Be(expectation.Message);
         
-        response.Data.CreateSkill
+        response.Data.DeleteSkill
             .Should()
             .BeNull();
-    }
-
-    [Fact]
-    public async Task DeleteSkill_SkillExists_ShouldReturnTrue()
-    {
-        // Arrange
-        const string name = "C#";
-        var request = new GraphQLRequest
-        {
-            Query =
-                """
-                mutation ($name: String!) {
-                  deleteSkill(name: $name)
-                }
-                """,
-            Variables = new { name }
-        };
-        
-        CurriculumDataMock
-            .DeleteSkill(name)
-            .Returns(true);
-        
-        var expectation = new DeleteSkillResponse(true);
-        
-        // Act
-        var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
-        
-        // Assert
-        response.Errors
-            .Should()
-            .BeNullOrEmpty();
-        
-        response.Data
-            .Should()
-            .BeEquivalentTo(expectation);
-    }
-
-    [Fact]
-    public async Task DeleteSkill_SkillDoesNotExist_ShouldReturnFalse()
-    {
-        // Arrange
-        const string name = "Missing";
-        var request = new GraphQLRequest
-        {
-            Query =
-                """
-                mutation ($name: String!) {
-                  deleteSkill(name: $name)
-                }
-                """,
-            Variables = new { name }
-        };
-       
-        CurriculumDataMock
-            .DeleteSkill(name)
-            .Returns(false);
-        
-        var expectation = new DeleteSkillResponse(false);
-        
-        // Act
-        var response = await GraphQLClient.SendQueryAsync<DeleteSkillResponse>(request);
-        
-        // Assert
-        response.Errors
-            .Should()
-            .BeNullOrEmpty();
-        
-        response.Data
-            .Should()
-            .BeEquivalentTo(expectation);
     }
 
     [Fact]
@@ -180,7 +194,10 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             Query =
                 """
                 mutation ($name: String!) {
-                  deleteSkill(name: $name)
+                  deleteSkill(name: $name) {
+                    id
+                    name
+                  }
                 }
                 """,
             Variables = new { name }
@@ -191,6 +208,7 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
             new Dictionary<string, object>
             {
                 { "Name", "Is Null or Empty" }
+                
             });
         
         // Act
@@ -204,9 +222,13 @@ public class SkillMutationTests(ApiWebApplicationFactory factory) : TestBase(fac
         response.Errors![0].Message
             .Should()
             .Be(expectation.Message);
+        
+        response.Data.DeleteSkill
+            .Should()
+            .BeNull();
     }
 
     private sealed record CreateSkillResponse(Skill CreateSkill);
 
-    private sealed record DeleteSkillResponse(bool DeleteSkill);
+    private sealed record DeleteSkillResponse(Skill? DeleteSkill);
 }

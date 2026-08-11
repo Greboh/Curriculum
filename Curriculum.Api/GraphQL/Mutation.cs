@@ -27,7 +27,7 @@ public sealed class Mutation : ObjectGraphType
                     .GetValueOrAddError(ctx);
             });
 
-        Field<BooleanGraphType>("deleteSkill")
+        Field<SkillType>("deleteSkill")
             .Argument<NonNullGraphType<StringGraphType>>("name")
             .Resolve(ctx =>
             {
