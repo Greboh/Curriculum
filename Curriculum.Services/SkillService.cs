@@ -10,7 +10,7 @@ public interface ISkillService
     IReadOnlyList<Skill> GetAll();
     Result<Skill> GetById(Guid id);
     Result<Skill> Create(string name);
-    Result<bool> Delete(string name);
+    Result<Skill> Delete(string name);
 }
 
 public class SkillService(ICurriculumData data) : ISkillService
@@ -53,9 +53,10 @@ public class SkillService(ICurriculumData data) : ISkillService
         return data.CreateSkill(skill);
     }
 
-    public Result<bool> Delete(string name)
+    public Result<Skill> Delete(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
+        var trimmedName = name.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedName))
         {
             return new SkillValidationError(
                 name,
@@ -66,6 +67,12 @@ public class SkillService(ICurriculumData data) : ISkillService
             );
         }
 
-        return data.DeleteSkill(name);
+        var deletedSkill = data.DeleteSkill(trimmedName);
+        if (deletedSkill is null)
+        {
+            return new SkillNotFoundError(trimmedName);
+        }
+
+        return deletedSkill;
     }
 }

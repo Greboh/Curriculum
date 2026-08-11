@@ -3,10 +3,17 @@ using Curriculum.Core.Results;
 
 namespace Curriculum.Services.Errors;
 
-public record SkillNotFoundError(
-    Guid Id,
-    IDictionary<string, object?>? HttpExtensions = null
-    ) : NotFoundError<Skill>($"Skill with id {Id} not found.", HttpExtensions);
+public record SkillNotFoundError : NotFoundError<Skill>
+{
+    public SkillNotFoundError(Guid id, IDictionary<string, object?>? httpExtensions = null)
+        : base($"Skill with id {id} not found.", httpExtensions)
+    {
+    }
+    public SkillNotFoundError(string name, IDictionary<string, object?>? httpExtensions = null)
+        : base($"Skill with name '{name}' not found.", httpExtensions)
+    {
+    }
+}
 
 public record SkillValidationError(
     string Name,

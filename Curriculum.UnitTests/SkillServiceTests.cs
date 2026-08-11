@@ -77,21 +77,26 @@ public class SkillServiceTests : TestBase
     }
 
     [Fact]
-    public void Delete_SkillExists_ShouldReturnTrue()
+    public void Delete_SkillExists_ShouldReturnDeletedSkill()
     {
         // Arrange
         const string name = "C#";
+        var deletedSkill = new Skill
+        {
+            Id = Guid.CreateVersion7(),
+            Name = name
+        };
+
         CurriculumDataMock
             .DeleteSkill(name)
-            .Returns(true);
+            .Returns(deletedSkill);
 
         // Act
         var result = _uut.Delete(name);
 
         // Assert
-        result.Value
-            .Should()
-            .BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(deletedSkill);
 
         CurriculumDataMock
             .Received(1)
@@ -99,21 +104,23 @@ public class SkillServiceTests : TestBase
     }
 
     [Fact]
-    public void Delete_SkillDoesNotExist_ShouldReturnFalse()
+    public void Delete_SkillDoesNotExist_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
         CurriculumDataMock
             .DeleteSkill(name)
-            .Returns(false);
+            .Returns((Skill?)null);
+
+        var expectation = new SkillNotFoundError(name);
 
         // Act
         var result = _uut.Delete(name);
 
         // Assert
-        result.Value
-            .Should()
-            .BeFalse();
+        result.IsFailure.Should().BeTrue();
+        result.Value.Should().BeNull();
+        result.Error.Should().BeEquivalentTo(expectation);
     }
 
     [Fact]
@@ -133,9 +140,8 @@ public class SkillServiceTests : TestBase
         var result = _uut.Delete(name);
 
         // Assert
-        result.Error
-            .Should()
-            .BeEquivalentTo(expectation);
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().BeEquivalentTo(expectation);
 
         CurriculumDataMock
             .DidNotReceive()
