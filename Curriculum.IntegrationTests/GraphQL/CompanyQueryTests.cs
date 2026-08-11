@@ -40,12 +40,12 @@ public class CompanyQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
         response.Errors
             .Should()
             .BeNullOrEmpty();
-        
+
         response.Data.Companies
             .Should()
             .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
     }
-    
+
     [Fact]
     public async Task Companies_DataDoesNotContainCompanies_ShouldReturnEmptyList()
     {
@@ -65,7 +65,7 @@ public class CompanyQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
                 }
                 """
         };
-        
+
         // Act
         var response = await GraphQLClient.SendQueryAsync<CompaniesResponses>(request);
 
@@ -78,32 +78,30 @@ public class CompanyQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
             .Should()
             .BeEmpty();
     }
-    
+
     [Fact]
-    public async Task Company_DataContainsCompanyWithMatchingId_ShouldReturnCompany()
+    public async Task Company_ById_ShouldReturnCompany()
     {
         // Arrange
-        CurriculumDataMock.Companies
-            .Returns(FakeCurriculumData.Companies);
-        
         var expectation = FakeCurriculumData.Companies[0];
-        
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      company(id: $id) {
+                    query ($by: ByIdOrName!) {
+                      company(by: $by) {
                         id
                         name
                       }
                     }
                     """,
-            Variables = new { id = expectation.Id }
+            Variables = new { by = new { id = expectation.Id } }
         };
+
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<CompanyResponse>(request);
-        
+
         // Assert
         response.Errors
             .Should()
@@ -113,44 +111,75 @@ public class CompanyQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
             .Should()
             .BeEquivalentTo(expectation);
     }
-    
+
     [Fact]
-    public async Task Company_DataDoesNotContainCompanyWithMatchingId_ShouldReturnNotFoundError()
+    public async Task Company_ByName_ShouldReturnCompany()
     {
         // Arrange
-        CurriculumDataMock.Companies
-            .Returns(FakeCurriculumData.Companies);
-        
-        var missingId = Guid.CreateVersion7();
+        var expectation = FakeCurriculumData.Companies[0];
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      company(id: $id) {
+                    query ($by: ByIdOrName!) {
+                      company(by: $by) {
                         id
                         name
                       }
                     }
                     """,
-            Variables = new { id = missingId }
+            Variables = new { by = new { name = expectation.Name } }
         };
 
-        var expectation = new CompanyNotFoundError(missingId);
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<CompanyResponse>(request);
-        
+
         // Assert
         response.Errors
             .Should()
-            .NotBeNullOrEmpty();
-        
-        response.Errors![0].Message
-            .Should()
-            .BeEquivalentTo(expectation.Message);
+            .BeNullOrEmpty();
         
         response.Data.Company
             .Should()
+            .BeEquivalentTo(expectation);
+    }
+
+    [Fact]
+    public async Task Company_ById_Missing_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        var missingId = Guid.CreateVersion7();
+        var expectation = new CompanyNotFoundError(missingId);
+        var request = new GraphQLRequest
+        {
+            Query = """
+                    query ($by: ByIdOrName!) {
+                      company(by: $by) {
+                        id
+                        name
+                      }
+                    }
+                    """,
+            Variables = new { by = new { id = missingId } }
+        };
+
+        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
+        
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<CompanyResponse>(request);
+
+        // Assert
+        response.Errors
+            .Should().
+            NotBeNullOrEmpty();
+        
+        response.Errors![0].Message
+            .Should()
+            .Be(expectation.Message);
+        
+        response.Data.Company.
+            Should()
             .BeNull();
     }
 
@@ -158,4 +187,3 @@ public class CompanyQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
 
     private sealed record CompanyResponse(Company? Company);
 }
-

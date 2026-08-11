@@ -3,7 +3,13 @@ using Curriculum.Core.Results;
 
 namespace Curriculum.Services.Errors;
 
-public record CompanyNotFoundError(
-    Guid Id,
-    IDictionary<string, object?>? HttpExtensions = null
-    ) : NotFoundError<Company>($"Company with id {Id} not found.", HttpExtensions);
+public record CompanyNotFoundError : NotFoundError<Company>
+{
+    public CompanyNotFoundError(Guid id, IDictionary<string, object?>? httpExtensions = null)
+        : base($"Company with id {id} not found.",  httpExtensions)
+    { }
+    
+    public CompanyNotFoundError(string name, IDictionary<string, object?>? httpExtensions = null)
+        : base($"Company with name '{name}' not found.",  httpExtensions)
+    { }
+}

@@ -1,5 +1,6 @@
 using Curriculum.Api.Extensions;
-using Curriculum.Api.GraphQL.Types;
+using Curriculum.Api.GraphQL.InputTypes;
+using Curriculum.Api.GraphQL.ObjectTypes;
 using Curriculum.Services;
 using GraphQL;
 using GraphQL.Types;
@@ -18,21 +19,21 @@ public sealed class Query : ObjectGraphType
 
     private void ResolveCompany()
     {
-        Field<NonNullGraphType<ListGraphType<NonNullGraphType<CompanyType>>>>("companies")
+        Field<ListGraphType<NonNullGraphType<CompanyType>>>("companies")
             .Resolve(ctx => ctx.RequestServices!
                 .GetRequiredService<ICompanyService>()
                 .GetAll()
             );
 
         Field<CompanyType>("company")
-            .Argument<NonNullGraphType<IdGraphType>>("id")
+            .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
             .Resolve(ctx =>
             {
-                var id = ctx.GetArgument<Guid>("id");
-                
+                var by = ctx.GetArgument<ByIdOrName>("by");
+
                 return ctx.RequestServices!
                     .GetRequiredService<ICompanyService>()
-                    .GetById(id)
+                    .Get(by.Id, by.Name)
                     .GetValueOrAddError(ctx);
             });
     }
@@ -46,14 +47,14 @@ public sealed class Query : ObjectGraphType
             );
 
         Field<EducationType>("education")
-            .Argument<NonNullGraphType<IdGraphType>>("id")
+            .Argument<NonNullGraphType<EducationByInputType>>("by")
             .Resolve(ctx =>
             {
-                var id = ctx.GetArgument<Guid>("id");
+                var by = ctx.GetArgument<EducationBy>("by");
                 
                 return ctx.RequestServices!
                     .GetRequiredService<IEducationService>()
-                    .GetById(id)
+                    .Get(by.Id, by.Institution)
                     .GetValueOrAddError(ctx);
             });
     }
@@ -67,14 +68,14 @@ public sealed class Query : ObjectGraphType
             );
 
         Field<ProjectType>("project")
-            .Argument<NonNullGraphType<IdGraphType>>("id")
+            .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
             .Resolve(ctx =>
             {
-                var id = ctx.GetArgument<Guid>("id");
+                var by = ctx.GetArgument<ByIdOrName>("by");
                 
                 return ctx.RequestServices!
                     .GetRequiredService<IProjectService>()
-                    .GetById(id)
+                    .Get(by.Id, by.Name)
                     .GetValueOrAddError(ctx);
             });
     }
@@ -88,14 +89,14 @@ public sealed class Query : ObjectGraphType
             );
 
         Field<SkillType>("skill")
-            .Argument<NonNullGraphType<IdGraphType>>("id")
+            .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
             .Resolve(ctx =>
             {
-                var id = ctx.GetArgument<Guid>("id");
+                var by = ctx.GetArgument<ByIdOrName>("by");
                 
                 return ctx.RequestServices!
                     .GetRequiredService<ISkillService>()
-                    .GetById(id)
+                    .Get(by.Id, by.Name)
                     .GetValueOrAddError(ctx);
             });
     }

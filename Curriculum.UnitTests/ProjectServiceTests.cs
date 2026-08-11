@@ -1,5 +1,4 @@
-﻿using Curriculum.Core.Entities;
-using Curriculum.Services;
+﻿using Curriculum.Services;
 using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
@@ -51,41 +50,77 @@ public class ProjectServiceTests : TestBase
             .Should()
             .BeEmpty();
     }
-
+    
     [Fact]
-    public void GetById_DataContainsProjectWithMatchingId_ShouldReturnProjectWithMatchingId()
+    public void Get_ById_DataContainsProject_ShouldReturnProject()
     {
         // Arrange
         var id = FakeCurriculumData.Projects[0].Id;
         
-        CurriculumDataMock.Projects
-            .Returns(FakeCurriculumData.Projects);
-
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
         var expectation = FakeCurriculumData.Projects[0];
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-
+    
     [Fact]
-    public void GetById_DataDoesNotContainProjectWithMatchingId_ShouldReturnNotFoundError()
+    public void Get_ById_DataDoesNotContainProject_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Projects[0].Id;
         
-        CurriculumDataMock.Projects
-            .Returns([]);
-
+        CurriculumDataMock.Projects.Returns([]);
+        
         var expectation = new ProjectNotFoundError(id);
         
         // Act
-        var result = _uut.GetById(id);
-
+        var result = _uut.Get(id, null);
+        
+        // Assert
+        result.Error
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataContainsProject_ShouldReturnProject()
+    {
+        // Arrange
+        var name = FakeCurriculumData.Projects[0].Name;
+        
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
+        var expectation = FakeCurriculumData.Projects[0];
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
+        // Assert
+        result.Value
+            .Should()
+            .BeEquivalentTo(expectation);
+    }
+    
+    [Fact]
+    public void Get_ByName_DataDoesNotContainProject_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        const string name = "Missing";
+        
+        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        
+        var expectation = new ProjectNotFoundError(name);
+        
+        // Act
+        var result = _uut.Get(null, name);
+        
         // Assert
         result.Error
             .Should()

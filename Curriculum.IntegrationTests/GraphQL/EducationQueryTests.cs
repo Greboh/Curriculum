@@ -86,19 +86,15 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
     }
 
     [Fact]
-    public async Task Education_DataContainsEducationWithMatchingId_ShouldReturnEducation()
+    public async Task Education_ById_ShouldReturnEducation()
     {
         // Arrange
-        CurriculumDataMock.Educations
-            .Returns(FakeCurriculumData.Educations);
-
         var expectation = FakeCurriculumData.Educations[0];
-
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      education(id: $id) {
+                    query ($by: EducationBy!) {
+                      education(by: $by) {
                         id
                         institution
                         degree
@@ -107,9 +103,11 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
                       }
                     }
                     """,
-            Variables = new { id = expectation.Id }
+            Variables = new { by = new { id = expectation.Id } }
         };
 
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
         // Act
         var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);
 
@@ -117,25 +115,22 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
         response.Errors
             .Should()
             .BeNullOrEmpty();
-
+        
         response.Data.Education
             .Should()
             .BeEquivalentTo(expectation);
     }
 
     [Fact]
-    public async Task Education_DataDoesNotContainEducationWithMatchingId_ShouldReturnNotFoundError()
+    public async Task Education_ByName_ShouldReturnEducation()
     {
         // Arrange
-        CurriculumDataMock.Educations
-            .Returns(FakeCurriculumData.Educations);
-
-        var missingId = Guid.CreateVersion7();
+        var expectation = FakeCurriculumData.Educations[0];
         var request = new GraphQLRequest
         {
             Query = """
-                    query ($id: ID!) {
-                      education(id: $id) {
+                    query ($by: EducationBy!) {
+                      education(by: $by) {
                         id
                         institution
                         degree
@@ -144,25 +139,59 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
                       }
                     }
                     """,
-            Variables = new { id = missingId }
+            Variables = new { by = new { institution = expectation.Institution } }
         };
 
-        var expectation = new EducationNotFoundError(missingId);
-
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
         // Act
         var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);
 
         // Assert
         response.Errors
             .Should()
-            .NotBeNullOrEmpty();
-
-        response.Errors![0].Message
-            .Should()
-            .BeEquivalentTo(expectation.Message);
-
+            .BeNullOrEmpty();
+        
         response.Data.Education
             .Should()
+            .BeEquivalentTo(expectation);
+    }
+
+    [Fact]
+    public async Task Education_ById_Missing_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        var missingId = Guid.CreateVersion7();
+        var expectation = new EducationNotFoundError(missingId);
+        var request = new GraphQLRequest
+        {
+            Query = """
+                    query ($by: EducationBy!) {
+                      education(by: $by) {
+                        id
+                        institution
+                      }
+                    }
+                    """,
+            Variables = new { by = new { id = missingId } }
+        };
+
+        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        
+        // Act
+        var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);
+
+        // Assert
+        response.Errors
+            .Should().
+            NotBeNullOrEmpty();
+        
+        response.Errors![0].Message
+            .Should()
+            .Be(expectation.Message);
+        
+        response.Data.Education.
+            Should()
             .BeNull();
     }
 

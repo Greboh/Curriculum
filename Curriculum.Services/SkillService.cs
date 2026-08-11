@@ -8,9 +8,9 @@ namespace Curriculum.Services;
 public interface ISkillService
 {
     IReadOnlyList<Skill> GetAll();
-    Result<Skill> GetById(Guid id);
+    Result<Skill> Get(Guid? id, string? name);
     Result<Skill> Create(string name);
-    Result<Skill> Delete(string name);
+    Result<Skill> Delete(Guid? id, string? name);
 }
 
 public class SkillService(ICurriculumData data) : ISkillService
@@ -18,17 +18,26 @@ public class SkillService(ICurriculumData data) : ISkillService
     public IReadOnlyList<Skill> GetAll()
         => data.Skills;
 
-    public Result<Skill> GetById(Guid id)
+    public Result<Skill> Get(Guid? id, string? name)
     {
-        var skill = data.Skills
-            .FirstOrDefault(x => x.Id == id);
-
-        if (skill is null)
+        Skill? skill;
+        
+        if (id.HasValue)
         {
-            return new SkillNotFoundError(id);
+            skill = data.Skills
+                .FirstOrDefault(x => x.Id == id.Value);
+            
+            return skill is null
+                ? new SkillNotFoundError(id.Value)
+                : skill;
         }
 
-        return skill;
+        skill = data.Skills
+            .FirstOrDefault(x => x.Name == name?.Trim());
+        
+        return skill is null
+            ? new SkillNotFoundError(name!)
+            : skill;
     }
 
     public Result<Skill> Create(string name)
@@ -53,24 +62,14 @@ public class SkillService(ICurriculumData data) : ISkillService
         return data.CreateSkill(skill);
     }
 
-    public Result<Skill> Delete(string name)
+    public Result<Skill> Delete(Guid? id, string? name)
     {
-        var trimmedName = name.Trim();
-        if (string.IsNullOrWhiteSpace(trimmedName))
-        {
-            return new SkillValidationError(
-                name,
-                new Dictionary<string, object>
-                {
-                    { "Name", "Is Null or Empty" }
-                }
-            );
-        }
-
-        var deletedSkill = data.DeleteSkill(trimmedName);
+        var deletedSkill = data.DeleteSkill(id, name);
         if (deletedSkill is null)
         {
-            return new SkillNotFoundError(trimmedName);
+            return id.HasValue
+                ? new SkillNotFoundError(id.Value)
+                : new SkillNotFoundError(name!);
         }
 
         return deletedSkill;

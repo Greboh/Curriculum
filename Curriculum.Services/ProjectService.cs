@@ -8,7 +8,7 @@ namespace Curriculum.Services;
 public interface IProjectService
 {
     IReadOnlyList<Project> GetAll();
-    Result<Project> GetById(Guid id);
+    Result<Project> Get(Guid? id,  string? name);
 }
 
 public class ProjectService(ICurriculumData data) : IProjectService
@@ -16,16 +16,25 @@ public class ProjectService(ICurriculumData data) : IProjectService
     public IReadOnlyList<Project> GetAll()
         => data.Projects;
 
-    public Result<Project> GetById(Guid id)
+    public Result<Project> Get(Guid? id, string? name)
     {
-        var project = data.Projects
-            .FirstOrDefault(x => x.Id == id);
-
-        if (project is null)
+        Project? project;
+        
+        if (id.HasValue)
         {
-            return new ProjectNotFoundError(id);
+            project = data.Projects
+                .FirstOrDefault(x => x.Id == id.Value);
+            
+            return project is null
+                ? new ProjectNotFoundError(id.Value)
+                : project;
         }
 
-        return project;
+        project = data.Projects
+            .FirstOrDefault(x => x.Name == name?.Trim());
+        
+        return project is null
+            ? new ProjectNotFoundError(name!)
+            : project;
     }
 }

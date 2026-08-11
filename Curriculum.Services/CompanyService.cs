@@ -8,7 +8,7 @@ namespace Curriculum.Services;
 public interface ICompanyService
 {
     IReadOnlyList<Company> GetAll();
-    Result<Company> GetById(Guid id);
+    Result<Company> Get(Guid? id, string? name);
 }
 
 public class CompanyService(ICurriculumData data) : ICompanyService
@@ -16,16 +16,25 @@ public class CompanyService(ICurriculumData data) : ICompanyService
     public IReadOnlyList<Company> GetAll()
         => data.Companies;
 
-    public Result<Company> GetById(Guid id)
+    public Result<Company> Get(Guid? id, string? name)
     {
-        var company = data.Companies
-            .FirstOrDefault(x => x.Id == id);
-
-        if (company is null)
+        Company? company;
+        
+        if (id.HasValue)
         {
-            return new CompanyNotFoundError(id);
+            company = data.Companies
+                .FirstOrDefault(x => x.Id == id.Value);
+            
+            return company is null
+                ? new CompanyNotFoundError(id.Value)
+                : company;
         }
 
-        return company;
+        company = data.Companies
+            .FirstOrDefault(x => x.Name == name?.Trim());
+        
+        return company is null
+            ? new CompanyNotFoundError(name!)
+            : company;
     }
 }

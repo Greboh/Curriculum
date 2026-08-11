@@ -7,12 +7,12 @@ public interface ICurriculumData
     IReadOnlyList<Company> Companies { get; }
     IReadOnlyList<Project> Projects { get; }
     IReadOnlyList<Education> Educations { get; }
-    
+
     IReadOnlyList<Skill> Skills { get; }
     Skill CreateSkill(Skill skill);
-    
+
     /// <returns>Returns deleted skill, or null if the skill doesn't exist.</returns>
-    Skill? DeleteSkill(string name);
+    Skill? DeleteSkill(Guid? id, string? name);
 }
 
 public class CurriculumData : ICurriculumData
@@ -21,7 +21,7 @@ public class CurriculumData : ICurriculumData
     [
         new() { Id = Guid.CreateVersion7(), Name = "Tryg A/S" }
     ];
-    
+
     public IReadOnlyList<Project> Projects { get; } =
     [
         new() { Id = Guid.CreateVersion7(), Name = "Internal load-test tool" },
@@ -30,13 +30,13 @@ public class CurriculumData : ICurriculumData
         new() { Id = Guid.CreateVersion7(), Name = "Microsoft Orleans production adoption" },
         new() { Id = Guid.CreateVersion7(), Name = "KPI platform data-ingestion / Orleans ingress" },
     ];
-    
+
     public IReadOnlyList<Education> Educations { get; } =
     [
         new()
         {
             Id = Guid.CreateVersion7(),
-            Institution = "Erhvervsakademi Dania", 
+            Institution = "Erhvervsakademi Dania",
             Degree = "Professionsbachelor i Softwareudvikling",
             StartDate = new(2024, 1, 1),
             EndDate = new(2025, 12, 31),
@@ -77,14 +77,17 @@ public class CurriculumData : ICurriculumData
         return skill;
     }
 
-    public Skill? DeleteSkill(string name)
+    public Skill? DeleteSkill(Guid? id, string? name)
     {
-        var skill = _skills.FirstOrDefault(x => x.Name == name);
+        var skill = id.HasValue
+            ? _skills.FirstOrDefault(x => x.Id == id.Value)
+            : _skills.FirstOrDefault(x => x.Name == name?.Trim());
+        
         if (skill is not null)
         {
             _skills.Remove(skill);
         }
-
+        
         return skill;
     }
 }
