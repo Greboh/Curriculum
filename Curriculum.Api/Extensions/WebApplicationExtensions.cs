@@ -1,4 +1,5 @@
 using Curriculum.Api.Configurations;
+using Curriculum.Infrastructure.Configurations;
 
 namespace Curriculum.Api.Extensions;
 
@@ -9,6 +10,8 @@ public static class WebApplicationExtensions
         IConfiguration configuration
     )
     {
+        app.ConfigureSerilogRequestLogging();
+        
         app.UseRouting();
 
         app.ConfigureHealthChecks();
