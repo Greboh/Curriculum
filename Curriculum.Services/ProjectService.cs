@@ -2,37 +2,43 @@
 using Curriculum.Core.Results;
 using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Curriculum.Services;
 
 public interface IProjectService
 {
-    IReadOnlyList<Project> GetAll();
-    Result<Project> Get(Guid? id,  string? name);
+    Task<IReadOnlyList<Project>> GetAll(CancellationToken ct = default);
+    Task<Result<Project>> Get(Guid? id, string? name, CancellationToken ct = default);
 }
 
-public class ProjectService(ICurriculumData data) : IProjectService
+public class ProjectService(CurriculumContext context) : IProjectService
 {
-    public IReadOnlyList<Project> GetAll()
-        => data.Projects;
+    public async Task<IReadOnlyList<Project>> GetAll(CancellationToken ct = default)
+        => await context.Projects
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-    public Result<Project> Get(Guid? id, string? name)
+    public async Task<Result<Project>> Get(Guid? id, string? name, CancellationToken ct = default)
     {
         Project? project;
-        
+
         if (id.HasValue)
         {
-            project = data.Projects
-                .FirstOrDefault(x => x.Id == id.Value);
-            
+            project = await context.Projects
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id.Value, ct);
+
             return project is null
                 ? new ProjectNotFoundError(id.Value)
                 : project;
         }
 
-        project = data.Projects
-            .FirstOrDefault(x => x.Name == name?.Trim());
-        
+        var trimmedName = name!.Trim();
+        project = await context.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name == trimmedName, ct);
+
         return project is null
             ? new ProjectNotFoundError(name!)
             : project;

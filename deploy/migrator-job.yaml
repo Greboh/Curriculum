@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: job
+metadata:
+  name: curriculum-migrator
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  template:
+    metadta:
+      labels:
+        app: curriculum-migrator
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrator
+          image: ghcr.io/greboh/curriculum-migrator:latest
+          imagePullPolicy: Always
+          env:
+            - name: DatabaseName
+              value: curriculum
+            - name: ConnectionStrings__Npgsql
+              valueFrom:
+                secretKeyRef:
+                  name: curriculum-db
+                  key: COnnectionStrings__Npgsql
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi

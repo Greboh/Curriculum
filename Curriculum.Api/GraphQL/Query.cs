@@ -20,84 +20,88 @@ public sealed class Query : ObjectGraphType
     private void ResolveCompany()
     {
         Field<ListGraphType<NonNullGraphType<CompanyType>>>("companies")
-            .Resolve(ctx => ctx.RequestServices!
+            .ResolveAsync(async ctx => await ctx.RequestServices!
                 .GetRequiredService<ICompanyService>()
-                .GetAll()
+                .GetAll(ctx.CancellationToken)
             );
 
         Field<CompanyType>("company")
             .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var by = ctx.GetArgument<ByIdOrName>("by");
 
-                return ctx.RequestServices!
+                var result = await ctx.RequestServices!
                     .GetRequiredService<ICompanyService>()
-                    .Get(by.Id, by.Name)
-                    .GetValueOrAddError(ctx);
+                    .Get(by.Id, by.Name, ctx.CancellationToken);
+                    
+                return result.GetValueOrAddError(ctx);
             });
     }
 
     private void ResolveEducation()
     {
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<EducationType>>>>("educations")
-            .Resolve(ctx => ctx.RequestServices!
+            .ResolveAsync(async ctx => await ctx.RequestServices!
                 .GetRequiredService<IEducationService>()
-                .GetAll()
+                .GetAll(ctx.CancellationToken)
             );
 
         Field<EducationType>("education")
             .Argument<NonNullGraphType<EducationByInputType>>("by")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var by = ctx.GetArgument<EducationBy>("by");
-                
-                return ctx.RequestServices!
+
+                var result = await ctx.RequestServices!
                     .GetRequiredService<IEducationService>()
-                    .Get(by.Id, by.Institution)
-                    .GetValueOrAddError(ctx);
+                    .Get(by.Id, by.Institution, ctx.CancellationToken);
+
+                return result.GetValueOrAddError(ctx);
             });
     }
-    
+
     private void ResolveProject()
     {
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<ProjectType>>>>("projects")
-            .Resolve(ctx => ctx.RequestServices!
+            .ResolveAsync(async ctx => await ctx.RequestServices!
                 .GetRequiredService<IProjectService>()
-                .GetAll()
+                .GetAll(ctx.CancellationToken)
             );
 
         Field<ProjectType>("project")
             .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var by = ctx.GetArgument<ByIdOrName>("by");
-                
-                return ctx.RequestServices!
+
+                var result = await ctx.RequestServices!
                     .GetRequiredService<IProjectService>()
-                    .Get(by.Id, by.Name)
-                    .GetValueOrAddError(ctx);
+                    .Get(by.Id, by.Name, ctx.CancellationToken);
+
+                return result.GetValueOrAddError(ctx);
             });
     }
-    
+
     private void ResolveSkill()
     {
         Field<NonNullGraphType<ListGraphType<NonNullGraphType<SkillType>>>>("skills")
-            .Resolve(ctx => ctx.RequestServices!
+            .ResolveAsync(async ctx => await ctx.RequestServices!
                 .GetRequiredService<ISkillService>()
-                .GetAll()
+                .GetAll(ctx.CancellationToken)
             );
 
         Field<SkillType>("skill")
             .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var by = ctx.GetArgument<ByIdOrName>("by");
-                
-                return ctx.RequestServices!
+
+                var result = await ctx.RequestServices!
                     .GetRequiredService<ISkillService>()
-                    .Get(by.Id, by.Name)
-                    .GetValueOrAddError(ctx);
+                    .Get(by.Id, by.Name, ctx.CancellationToken);
+
+                return result.GetValueOrAddError(ctx);
             });
     }
 }

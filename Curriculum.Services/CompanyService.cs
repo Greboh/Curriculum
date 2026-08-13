@@ -2,39 +2,45 @@
 using Curriculum.Core.Results;
 using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Curriculum.Services;
 
 public interface ICompanyService
 {
-    IReadOnlyList<Company> GetAll();
-    Result<Company> Get(Guid? id, string? name);
+    Task<IReadOnlyList<Company>> GetAll(CancellationToken ct = default);
+    Task<Result<Company>> Get(Guid? id, string? name, CancellationToken ct = default);
 }
 
-public class CompanyService(ICurriculumData data) : ICompanyService
+public class CompanyService(CurriculumContext context) : ICompanyService
 {
-    public IReadOnlyList<Company> GetAll()
-        => data.Companies;
+    public async Task<IReadOnlyList<Company>> GetAll(CancellationToken ct = default)
+        => await context.Companies.
+            AsNoTracking()
+            .ToListAsync(ct);
 
-    public Result<Company> Get(Guid? id, string? name)
+    public async Task<Result<Company>> Get(Guid? id, string? name, CancellationToken ct = default)
     {
         Company? company;
         
         if (id.HasValue)
         {
-            company = data.Companies
-                .FirstOrDefault(x => x.Id == id.Value);
+            company = await context.Companies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id.Value, ct);
             
             return company is null
                 ? new CompanyNotFoundError(id.Value)
                 : company;
         }
 
-        company = data.Companies
-            .FirstOrDefault(x => x.Name == name?.Trim());
+        var trimmedName = name!.Trim();
+        company = await context.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name == trimmedName, ct);
         
         return company is null
-            ? new CompanyNotFoundError(name!)
+            ? new CompanyNotFoundError(trimmedName)
             : company;
     }
 }

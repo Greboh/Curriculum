@@ -3,7 +3,6 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
 using FluentAssertions;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.UnitTests;
@@ -14,36 +13,32 @@ public class ProjectServiceTests : TestBase
 
     public ProjectServiceTests()
     {
-        _uut = new(CurriculumDataMock);
+        _uut = new(Context);
     }
 
     [Fact]
-    public void GetAll_DataContainsProjects_ShouldReturnAllProjects()
+    public async Task GetAll_DataContainsProjects_ShouldReturnAllProjects()
     {
         // Arrange
-        CurriculumDataMock.Projects
-            .Returns(FakeCurriculumData.Projects);
-
+        Context.Projects.AddRange(FakeCurriculumData.Projects);
+        await Context.SaveChangesAsync();
+        
         var expectation = FakeCurriculumData.Projects;
         
         // Act
-        var result = _uut.GetAll();
+        var result = await _uut.GetAll();
 
         // Assert
         result
             .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
-    public void GetAll_DataDoesNotContainProjects_ShouldReturnEmptyList()
+    public async Task GetAll_DataDoesNotContainProjects_ShouldReturnEmptyList()
     {
-        // Arrange
-        CurriculumDataMock.Projects
-            .Returns([]);
-        
         // Act
-        var result = _uut.GetAll();
+        var result = await _uut.GetAll();
 
         // Assert
         result
@@ -52,17 +47,18 @@ public class ProjectServiceTests : TestBase
     }
     
     [Fact]
-    public void Get_ById_DataContainsProject_ShouldReturnProject()
+    public async Task Get_ById_DataContainsProject_ShouldReturnProject()
     {
         // Arrange
         var id = FakeCurriculumData.Projects[0].Id;
         
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        Context.Projects.AddRange(FakeCurriculumData.Projects);
+        await Context.SaveChangesAsync();
         
         var expectation = FakeCurriculumData.Projects[0];
         
         // Act
-        var result = _uut.Get(id, null);
+        var result = await _uut.Get(id, null);
         
         // Assert
         result.Value
@@ -71,17 +67,15 @@ public class ProjectServiceTests : TestBase
     }
     
     [Fact]
-    public void Get_ById_DataDoesNotContainProject_ShouldReturnNotFoundError()
+    public async Task Get_ById_DataDoesNotContainProject_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Projects[0].Id;
         
-        CurriculumDataMock.Projects.Returns([]);
-        
         var expectation = new ProjectNotFoundError(id);
         
         // Act
-        var result = _uut.Get(id, null);
+        var result = await _uut.Get(id, null);
         
         // Assert
         result.Error
@@ -90,17 +84,18 @@ public class ProjectServiceTests : TestBase
     }
     
     [Fact]
-    public void Get_ByName_DataContainsProject_ShouldReturnProject()
+    public async Task Get_ByName_DataContainsProject_ShouldReturnProject()
     {
         // Arrange
         var name = FakeCurriculumData.Projects[0].Name;
         
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        Context.Projects.AddRange(FakeCurriculumData.Projects);
+        await Context.SaveChangesAsync();
         
         var expectation = FakeCurriculumData.Projects[0];
         
         // Act
-        var result = _uut.Get(null, name);
+        var result = await _uut.Get(null, name);
         
         // Assert
         result.Value
@@ -109,17 +104,18 @@ public class ProjectServiceTests : TestBase
     }
     
     [Fact]
-    public void Get_ByName_DataDoesNotContainProject_ShouldReturnNotFoundError()
+    public async Task Get_ByName_DataDoesNotContainProject_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
         
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
+        Context.Projects.AddRange(FakeCurriculumData.Projects);
+        await Context.SaveChangesAsync();
         
         var expectation = new ProjectNotFoundError(name);
         
         // Act
-        var result = _uut.Get(null, name);
+        var result = await _uut.Get(null, name);
         
         // Assert
         result.Error

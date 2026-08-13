@@ -9,7 +9,7 @@ GraphQL CV API (with seeded data matching my own CV). Built as a take-home in C#
 
 - .NET 10, ASP.NET Core
 - [graphql-dotnet](https://graphql-dotnet.github.io/)
-- In-memory data seeded from my CV (skills are mutable)
+-  Uses PostgresSQL with EFCore (If there is no data in the database, it seeds default data).
 - .NET Aspire for local orchestration
 - Docker + GitHub Actions with GitVersion building images to GHCR
 - Deployed to my k3s cluster using Argo CD. Manifests can be found in this repo. (`deploy/`)
@@ -18,7 +18,6 @@ GraphQL CV API (with seeded data matching my own CV). Built as a take-home in C#
 ## Local
 **Requirements:** .NET 10 SDK
 1. Clone repo.
-2. Open the solution (`Curriculum.slnx`) and run either:
-    - **Curriculum.AppHost** (Aspire), or
-    - **Curriculum.Api** directly
+2. Open the solution (`Curriculum.slnx`) and run **Curriculum.AppHost** (Aspire). 
+   - Locally Aspire ensures the database is configured and migrations are run.
 3. Open GraphiQL at `http://localhost:5076/ui/graphiql`.

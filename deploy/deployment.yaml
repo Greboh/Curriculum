@@ -26,6 +26,11 @@ spec:
               value: http://+:8080
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
+            - name: ConnectionStrings__Npgsql
+              valueFrom:
+                secretKeyRef:
+                  name: curriculum-db
+                  key: ConnectionStrings__Npgsql
           readinessProbe:
             httpGet:
               path: /health
