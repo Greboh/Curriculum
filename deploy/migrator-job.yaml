@@ -1,5 +1,5 @@
 apiVersion: batch/v1
-kind: job
+kind: Job
 metadata:
   name: curriculum-migrator
   annotations:
@@ -8,7 +8,7 @@ metadata:
 spec:
   backoffLimit: 1
   template:
-    metadta:
+    metadata:
       labels:
         app: curriculum-migrator
     spec:
@@ -24,7 +24,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: curriculum-db
-                  key: COnnectionStrings__Npgsql
+                  key: ConnectionStrings__Npgsql
           resources:
             requests:
               cpu: 50m
