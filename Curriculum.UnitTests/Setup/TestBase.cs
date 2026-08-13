@@ -1,20 +1,33 @@
 ﻿using Curriculum.Infrastructure.Persistence;
-using NSubstitute.ClearExtensions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 
 namespace Curriculum.UnitTests.Setup;
 
 public class TestBase : IDisposable
 {
-    protected ICurriculumData CurriculumDataMock = NSubstitute.Substitute.For<ICurriculumData>();
+    protected readonly CurriculumContext Context;
+    private readonly SqliteConnection _connection;
+
+    public TestBase()
+    {
+        _connection = new("DataSource=:memory:");
+        _connection.Open();
+        
+        var options = new DbContextOptionsBuilder<CurriculumContext>()
+            .UseSqlite(_connection)
+            .Options;
+        
+        Context = new(options);
+        Context.Database.EnsureCreated();
+    }
     
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        ClearMocks();
+        Context.Database.EnsureDeleted();
+        Context.Dispose();
+        _connection.Dispose();
     }
-
-    private void ClearMocks()
-    {
-        CurriculumDataMock.ClearSubstitute();
-    }
+    
 }

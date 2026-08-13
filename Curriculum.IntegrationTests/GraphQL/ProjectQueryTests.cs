@@ -4,7 +4,6 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using FluentAssertions;
 using GraphQL;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.IntegrationTests.GraphQL;
@@ -15,8 +14,10 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
     public async Task Projects_DataContainsProjects_ShouldReturnAllProjects()
     {
         // Arrange
-        CurriculumDataMock.Projects
-            .Returns(FakeCurriculumData.Projects);
+        await Factory.Seed(async db =>
+        {
+            await db.Projects.AddRangeAsync(FakeCurriculumData.Projects);
+        });
 
         var request = new GraphQLRequest
         {
@@ -43,16 +44,13 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
 
         response.Data.Projects
             .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
     public async Task Projects_DataDoesNotContainProjects_ShouldReturnEmptyList()
     {
         // Arrange
-        CurriculumDataMock.Projects
-            .Returns([]);
-
         var request = new GraphQLRequest
         {
             Query =
@@ -83,6 +81,11 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
     public async Task Project_ById_ShouldReturnProject()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Projects.AddRangeAsync(FakeCurriculumData.Projects);
+        });
+        
         var expectation = FakeCurriculumData.Projects[0];
         var request = new GraphQLRequest
         {
@@ -96,8 +99,6 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
                     """,
             Variables = new { by = new { id = expectation.Id } }
         };
-
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);
@@ -116,6 +117,11 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
     public async Task Project_ByName_ShouldReturnProject()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Projects.AddRangeAsync(FakeCurriculumData.Projects);
+        });
+        
         var expectation = FakeCurriculumData.Projects[0];
         var request = new GraphQLRequest
         {
@@ -129,8 +135,6 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
                     """,
             Variables = new { by = new { name = expectation.Name } }
         };
-
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);
@@ -149,6 +153,11 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
     public async Task Project_ById_Missing_ShouldReturnNotFoundError()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Projects.AddRangeAsync(FakeCurriculumData.Projects);
+        });
+        
         var missingId = Guid.CreateVersion7();
         var expectation = new ProjectNotFoundError(missingId);
         var request = new GraphQLRequest
@@ -163,8 +172,6 @@ public class ProjectQueryTests(ApiWebApplicationFactory factory) : TestBase(fact
                     """,
             Variables = new { by = new { id = missingId } }
         };
-
-        CurriculumDataMock.Projects.Returns(FakeCurriculumData.Projects);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<ProjectResponse>(request);

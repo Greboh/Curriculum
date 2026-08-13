@@ -2,39 +2,45 @@
 using Curriculum.Core.Results;
 using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Curriculum.Services;
 
 public interface IEducationService
 {
-    IReadOnlyList<Education> GetAll();
-    Result<Education> Get(Guid? id, string? institution);
+    Task<IReadOnlyList<Education>> GetAll(CancellationToken ct = default);
+    Task<Result<Education>> Get(Guid? id, string? institution, CancellationToken ct = default);
 }
 
-public class EducationService(ICurriculumData data) : IEducationService
+public class EducationService(CurriculumContext context) : IEducationService
 {
-    public IReadOnlyList<Education> GetAll()
-        => data.Educations;
+    public async Task<IReadOnlyList<Education>> GetAll(CancellationToken ct = default)
+        => await context.Educations
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-    public Result<Education> Get(Guid? id, string? institution)
+    public async Task<Result<Education>> Get(Guid? id, string? institution, CancellationToken ct = default)
     {
         Education? education;
-        
+
         if (id.HasValue)
         {
-            education = data.Educations
-                .FirstOrDefault(x => x.Id == id.Value);
-            
+            education = await context.Educations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id.Value, ct);
+
             return education is null
                 ? new EducationNotFoundError(id.Value)
                 : education;
         }
 
-        education = data.Educations
-            .FirstOrDefault(x => x.Institution == institution?.Trim());
-        
+        var trimmedInstitution = institution!.Trim();
+        education = await context.Educations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Institution == trimmedInstitution, ct);
+
         return education is null
-            ? new EducationNotFoundError(institution!)
+            ? new EducationNotFoundError(trimmedInstitution)
             : education;
     }
 }

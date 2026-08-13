@@ -4,6 +4,7 @@
     <File Path=".gitignore" />
     <File Path="Dockerfile" />
     <File Path="GitVersion.yaml" />
+    <File Path="migrator.Dockerfile" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Tests/">
@@ -15,5 +16,6 @@
   <Project Path="Curriculum.AppHost/Curriculum.AppHost.csproj" />
   <Project Path="Curriculum.Core/Curriculum.Core.csproj" />
   <Project Path="Curriculum.Infrastructure/Curriculum.Infrastructure.csproj" />
+  <Project Path="Curriculum.Migrator/Curriculum.Migrator.csproj" />
   <Project Path="Curriculum.Services/Curriculum.Services.csproj" />
 </Solution>

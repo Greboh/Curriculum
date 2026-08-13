@@ -1,5 +1,6 @@
 
 using Curriculum.Api.Configurations;
+using Curriculum.Infrastructure.Configurations;
 using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services;
 
@@ -19,7 +20,7 @@ public static class IServiceCollectionExtensions
         
         services
             .AddServices()
-            .AddPersistence();
+            .AddPersistence(configuration);
         
         return services;
     }
@@ -34,10 +35,13 @@ public static class IServiceCollectionExtensions
         return services;
     }
 
-    private static IServiceCollection AddPersistence(this IServiceCollection services)
+    private static IServiceCollection AddPersistence(
+        this IServiceCollection services, 
+        IConfiguration configuration
+        )
     {
-        services.AddSingleton<ICurriculumData, CurriculumData>();
-
+        services.ConfigureNpgsql(configuration, "curriculum");
+        
         return services;
     }
 }

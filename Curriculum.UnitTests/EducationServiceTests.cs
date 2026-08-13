@@ -4,7 +4,6 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
 using FluentAssertions;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.UnitTests;
@@ -15,36 +14,32 @@ public class EducationServiceTests : TestBase
 
     public EducationServiceTests()
     {
-        _uut = new(CurriculumDataMock);
+        _uut = new(Context);
     }
 
     [Fact]
-    public void GetAll_DataContainsEducations_ShouldReturnAllEducations()
+    public async Task GetAll_DataContainsEducations_ShouldReturnAllEducations()
     {
         // Arrange
-        CurriculumDataMock.Educations
-            .Returns(FakeCurriculumData.Educations);
-
+        Context.Educations.AddRange(FakeCurriculumData.Educations);
+        await Context.SaveChangesAsync();
+        
         var expectation = FakeCurriculumData.Educations;
         
         // Act
-        var result = _uut.GetAll();
+        var result = await _uut.GetAll();
 
         // Assert
         result
             .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
-    public void GetAll_DataDoesNotContainEducations_ShouldReturnEmptyList()
+    public async Task GetAll_DataDoesNotContainEducations_ShouldReturnEmptyList()
     {
-        // Arrange
-        CurriculumDataMock.Educations
-            .Returns([]);
-        
         // Act
-        var result = _uut.GetAll();
+        var result = await _uut.GetAll();
 
         // Assert
         result
@@ -53,17 +48,18 @@ public class EducationServiceTests : TestBase
     }
 
     [Fact]
-    public void Get_ById_DataContainsEducation_ShouldReturnEducation()
+    public async Task Get_ById_DataContainsEducation_ShouldReturnEducation()
     {
         // Arrange
         var id = FakeCurriculumData.Educations[0].Id;
         
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        Context.Educations.AddRange(FakeCurriculumData.Educations);
+        await Context.SaveChangesAsync();
         
         var expectation = FakeCurriculumData.Educations[0];
         
         // Act
-        var result = _uut.Get(id, null);
+        var result = await _uut.Get(id, null);
         
         // Assert
         result.Value
@@ -71,17 +67,15 @@ public class EducationServiceTests : TestBase
             .BeEquivalentTo(expectation);
     }
     [Fact]
-    public void Get_ById_DataDoesNotContainEducation_ShouldReturnNotFoundError()
+    public async Task Get_ById_DataDoesNotContainEducation_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Educations[0].Id;
         
-        CurriculumDataMock.Educations.Returns([]);
-        
         var expectation = new EducationNotFoundError(id);
         
         // Act
-        var result = _uut.Get(id, null);
+        var result = await _uut.Get(id, null);
         
         // Assert
         result.Error
@@ -89,17 +83,18 @@ public class EducationServiceTests : TestBase
             .BeEquivalentTo(expectation);
     }
     [Fact]
-    public void Get_ByInstitution_DataContainsEducation_ShouldReturnEducation()
+    public async Task Get_ByInstitution_DataContainsEducation_ShouldReturnEducation()
     {
         // Arrange
         var institution = FakeCurriculumData.Educations[0].Institution;
         
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        Context.Educations.AddRange(FakeCurriculumData.Educations);
+        await Context.SaveChangesAsync();
         
         var expectation = FakeCurriculumData.Educations[0];
         
         // Act
-        var result = _uut.Get(null, institution);
+        var result = await _uut.Get(null, institution);
         
         // Assert
         result.Value
@@ -108,17 +103,18 @@ public class EducationServiceTests : TestBase
     }
     
     [Fact]
-    public void Get_ByInstitution_DataDoesNotContainEducation_ShouldReturnNotFoundError()
+    public async Task Get_ByInstitution_DataDoesNotContainEducation_ShouldReturnNotFoundError()
     {
         // Arrange
         const string institution = "Missing";
         
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
+        Context.Educations.AddRange(FakeCurriculumData.Educations);
+        await Context.SaveChangesAsync();
         
         var expectation = new EducationNotFoundError(institution);
         
         // Act
-        var result = _uut.Get(null, institution);
+        var result = await _uut.Get(null, institution);
         
         // Assert
         result.Error

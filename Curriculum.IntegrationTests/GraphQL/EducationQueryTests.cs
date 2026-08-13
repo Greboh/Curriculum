@@ -4,7 +4,6 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using FluentAssertions;
 using GraphQL;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.IntegrationTests.GraphQL;
@@ -15,8 +14,10 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
     public async Task Educations_DataContainsEducations_ShouldReturnAllEducations()
     {
         // Arrange
-        CurriculumDataMock.Educations
-            .Returns(FakeCurriculumData.Educations);
+        await Factory.Seed(async db =>
+        {
+            await db.Educations.AddRangeAsync(FakeCurriculumData.Educations);
+        });
 
         var request = new GraphQLRequest
         {
@@ -46,16 +47,13 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
 
         response.Data.Educations
             .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
     public async Task Educations_DataDoesNotContainEducations_ShouldReturnEmptyList()
     {
         // Arrange
-        CurriculumDataMock.Educations
-            .Returns([]);
-
         var request = new GraphQLRequest
         {
             Query =
@@ -89,6 +87,11 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
     public async Task Education_ById_ShouldReturnEducation()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Educations.AddRangeAsync(FakeCurriculumData.Educations);
+        });
+        
         var expectation = FakeCurriculumData.Educations[0];
         var request = new GraphQLRequest
         {
@@ -105,8 +108,6 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
                     """,
             Variables = new { by = new { id = expectation.Id } }
         };
-
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);
@@ -125,6 +126,11 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
     public async Task Education_ByName_ShouldReturnEducation()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Educations.AddRangeAsync(FakeCurriculumData.Educations);
+        });
+        
         var expectation = FakeCurriculumData.Educations[0];
         var request = new GraphQLRequest
         {
@@ -141,8 +147,6 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
                     """,
             Variables = new { by = new { institution = expectation.Institution } }
         };
-
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);
@@ -161,6 +165,11 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
     public async Task Education_ById_Missing_ShouldReturnNotFoundError()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Educations.AddRangeAsync(FakeCurriculumData.Educations);
+        });
+        
         var missingId = Guid.CreateVersion7();
         var expectation = new EducationNotFoundError(missingId);
         var request = new GraphQLRequest
@@ -175,8 +184,6 @@ public class EducationQueryTests(ApiWebApplicationFactory factory) : TestBase(fa
                     """,
             Variables = new { by = new { id = missingId } }
         };
-
-        CurriculumDataMock.Educations.Returns(FakeCurriculumData.Educations);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<EducationResponse>(request);

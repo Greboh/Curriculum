@@ -2,45 +2,65 @@
 using Curriculum.Core.Results;
 using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace Curriculum.Services;
 
 public interface ISkillService
 {
-    IReadOnlyList<Skill> GetAll();
-    Result<Skill> Get(Guid? id, string? name);
-    Result<Skill> Create(string name);
-    Result<Skill> Delete(Guid? id, string? name);
+    Task<IReadOnlyList<Skill>> GetAll(CancellationToken ct = default);
+
+    Task<Result<Skill>> Get(
+        Guid? id,
+        string? name,
+        CancellationToken ct = default
+    );
+
+    Task<Result<Skill>> Create(string name, CancellationToken ct = default);
+
+    Task<bool> Delete(Guid? id,
+        string? name,
+        CancellationToken ct = default
+    );
 }
 
-public class SkillService(ICurriculumData data) : ISkillService
+public class SkillService(CurriculumContext context) : ISkillService
 {
-    public IReadOnlyList<Skill> GetAll()
-        => data.Skills;
+    public async Task<IReadOnlyList<Skill>> GetAll(CancellationToken ct = default)
+        => await context.Skills
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-    public Result<Skill> Get(Guid? id, string? name)
+    public async Task<Result<Skill>> Get(
+        Guid? id,
+        string? name,
+        CancellationToken ct = default
+    )
     {
         Skill? skill;
-        
+
         if (id.HasValue)
         {
-            skill = data.Skills
-                .FirstOrDefault(x => x.Id == id.Value);
-            
+            skill = await context.Skills
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id.Value, ct);
+
             return skill is null
                 ? new SkillNotFoundError(id.Value)
                 : skill;
         }
 
-        skill = data.Skills
-            .FirstOrDefault(x => x.Name == name?.Trim());
-        
+        var trimmedName = name!.Trim();
+        skill = await context.Skills
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name == trimmedName, ct);
+
         return skill is null
-            ? new SkillNotFoundError(name!)
+            ? new SkillNotFoundError(trimmedName)
             : skill;
     }
 
-    public Result<Skill> Create(string name)
+    public async Task<Result<Skill>> Create(string name, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -58,20 +78,30 @@ public class SkillService(ICurriculumData data) : ISkillService
             Id = Guid.CreateVersion7(),
             Name = name.Trim()
         };
-        
-        return data.CreateSkill(skill);
+
+        context.Skills.Add(skill);
+        await context.SaveChangesAsync(ct);
+
+        return skill;
     }
 
-    public Result<Skill> Delete(Guid? id, string? name)
+    public async Task<bool> Delete(Guid? id, string? name, CancellationToken ct = default)
     {
-        var deletedSkill = data.DeleteSkill(id, name);
-        if (deletedSkill is null)
+        int rowsDeleted;
+
+        if (id.HasValue)
         {
-            return id.HasValue
-                ? new SkillNotFoundError(id.Value)
-                : new SkillNotFoundError(name!);
+            rowsDeleted = await context.Skills
+                .Where(x => x.Id == id.Value)
+                .ExecuteDeleteAsync(ct);
+        }
+        else
+        {
+            rowsDeleted = await context.Skills
+                .Where(x => x.Name == name)
+                .ExecuteDeleteAsync(ct);
         }
 
-        return deletedSkill;
+        return rowsDeleted > 0;
     }
 }
