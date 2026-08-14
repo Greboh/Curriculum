@@ -4,7 +4,7 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
 using FluentAssertions;
-using NSubstitute;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Curriculum.UnitTests;
@@ -15,18 +15,14 @@ public class SkillServiceTests : TestBase
 
     public SkillServiceTests()
     {
-        _uut = new(CurriculumDataMock);
+        _uut = new(Context);
     }
 
     [Fact]
-    public void Create_NameIsValid_ShouldCreateAndReturnSkill()
+    public async Task Create_NameIsValid_ShouldCreateAndReturnSkill()
     {
         // Arrange
         const string name = "GraphQL";
-        CurriculumDataMock
-            .CreateSkill(Arg.Any<Skill>())
-            .Returns(x => x.Arg<Skill>());
-
         var expectation = new Skill
         {
             Id = Guid.Empty,
@@ -34,24 +30,24 @@ public class SkillServiceTests : TestBase
         };
 
         // Act
-        var result = _uut.Create(name);
+        var result = await _uut.Create(name);
 
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation, opt => opt.Excluding(x => x.Id));
 
-        result.Value.Id
+        result.Value!.Id
             .Should()
             .NotBeEmpty();
 
-        CurriculumDataMock
-            .Received(1)
-            .CreateSkill(Arg.Is<Skill>(x => x.Name == name));
+        (await Context.Skills.AsNoTracking().FirstOrDefaultAsync(x => x.Name == name))
+            .Should()
+            .NotBeNull();
     }
 
     [Fact]
-    public void Create_NameIsNullOrEmpty_ShouldReturnValidationError()
+    public async Task Create_NameIsNullOrEmpty_ShouldReturnValidationError()
     {
         // Arrange
         const string name = "";
@@ -64,120 +60,93 @@ public class SkillServiceTests : TestBase
         );
 
         // Act
-        var result = _uut.Create(name);
+        var result = await _uut.Create(name);
 
         // Assert
         result.Error
             .Should()
             .BeEquivalentTo(expectation);
 
-        CurriculumDataMock
-            .DidNotReceive()
-            .CreateSkill(Arg.Any<Skill>());
+        Context.Skills
+            .Should()
+            .BeEmpty();
     }
 
     [Fact]
-    public void Delete_ByName_SkillExists_ShouldReturnDeletedSkill()
+    public async Task Delete_ByName_SkillExists_ShouldReturnTrueAndRemoveSkill()
     {
         // Arrange
-        const string name = "C#";
-        
-        var deletedSkill = new Skill
-        {
-            Id = Guid.CreateVersion7(),
-            Name = name
-        };
-       
-        CurriculumDataMock
-            .DeleteSkill(null, name)
-            .Returns(deletedSkill);
-       
-        // Act
-        var result = _uut.Delete(null, name);
-       
-        // Assert
-        result.Value
-            .Should()
-            .BeEquivalentTo(deletedSkill);
-       
-        CurriculumDataMock
-            .Received(1)
-            .DeleteSkill(null, name);
-    }
-    [Fact]
-    public void Delete_ById_SkillExists_ShouldReturnDeletedSkill()
-    {
-        // Arrange
-        var deletedSkill = new Skill
+        var skill = new Skill
         {
             Id = Guid.CreateVersion7(),
             Name = "C#"
         };
-        
-        CurriculumDataMock
-            .DeleteSkill(deletedSkill.Id, null)
-            .Returns(deletedSkill);
-       
+        Context.Skills.Add(skill);
+        await Context.SaveChangesAsync();
+
         // Act
-        var result = _uut.Delete(deletedSkill.Id, null);
-        
+        var deleted = await _uut.Delete(null, skill.Name);
+
         // Assert
-        result.Value
-            .Should()
-            .BeEquivalentTo(deletedSkill);
-        
-        CurriculumDataMock
-            .Received(1)
-            .DeleteSkill(deletedSkill.Id, null);
+        deleted.Should().BeTrue();
+        Context.Skills.Should().NotContain(x => x.Id == skill.Id);
     }
+
     [Fact]
-    public void Delete_ByName_SkillDoesNotExist_ShouldReturnNotFoundError()
+    public async Task Delete_ById_SkillExists_ShouldReturnTrueAndRemoveSkill()
+    {
+        // Arrange
+        var skill = new Skill
+        {
+            Id = Guid.CreateVersion7(),
+            Name = "C#"
+        };
+        Context.Skills.Add(skill);
+        await Context.SaveChangesAsync();
+
+        // Act
+        var deleted = await _uut.Delete(skill.Id, null);
+
+        // Assert
+        deleted.Should().BeTrue();
+        Context.Skills.Should().NotContain(x => x.Id == skill.Id);
+    }
+
+    [Fact]
+    public async Task Delete_ByName_SkillDoesNotExist_ShouldReturnFalse()
     {
         // Arrange
         const string name = "Missing";
-       
-        CurriculumDataMock
-            .DeleteSkill(null, name)
-            .Returns((Skill?)null);
-      
-        var expectation = new SkillNotFoundError(name);
-       
+
         // Act
-        var result = _uut.Delete(null, name);
-       
+        var deleted = await _uut.Delete(null, name);
+
         // Assert
-        result.Error
+        deleted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAll_DataContainsSkills_ShouldReturnAllSkills()
+    {
+        // Arrange
+        Context.Skills.AddRange(FakeCurriculumData.Skills);
+        await Context.SaveChangesAsync();
+        var expectation = FakeCurriculumData.Skills;
+
+        // Act
+        var result = await _uut.GetAll();
+
+        // Assert
+        result
             .Should()
             .BeEquivalentTo(expectation);
     }
 
     [Fact]
-    public void GetAll_DataContainsSkills_ShouldReturnAllSkills()
+    public async Task GetAll_DataDoesNotContainSkills_ShouldReturnEmptyList()
     {
-        // Arrange
-        CurriculumDataMock.Skills
-            .Returns(FakeCurriculumData.Skills);
-
-        var expectation = FakeCurriculumData.Skills;
-
         // Act
-        var result = _uut.GetAll();
-
-        // Assert
-        result
-            .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
-    }
-
-    [Fact]
-    public void GetAll_DataDoesNotContainSkills_ShouldReturnEmptyList()
-    {
-        // Arrange
-        CurriculumDataMock.Skills
-            .Returns([]);
-
-        // Act
-        var result = _uut.GetAll();
+        var result = await _uut.GetAll();
 
         // Assert
         result
@@ -186,75 +155,67 @@ public class SkillServiceTests : TestBase
     }
 
     [Fact]
-    public void Get_ById_DataContainsSkill_ShouldReturnSkill()
+    public async Task Get_ById_DataContainsSkill_ShouldReturnSkill()
     {
         // Arrange
-        var id = FakeCurriculumData.Skills[0].Id;
-        
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
-        
+        Context.Skills.AddRange(FakeCurriculumData.Skills);
+        await Context.SaveChangesAsync();
         var expectation = FakeCurriculumData.Skills[0];
-        
+
         // Act
-        var result = _uut.Get(id, null);
-        
+        var result = await _uut.Get(expectation.Id, null);
+
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-    
+
     [Fact]
-    public void Get_ById_DataDoesNotContainSkill_ShouldReturnNotFoundError()
+    public async Task Get_ById_DataDoesNotContainSkill_ShouldReturnNotFoundError()
     {
         // Arrange
         var id = FakeCurriculumData.Skills[0].Id;
-        
-        CurriculumDataMock.Skills.Returns([]);
-        
         var expectation = new SkillNotFoundError(id);
-        
+
         // Act
-        var result = _uut.Get(id, null);
-        
+        var result = await _uut.Get(id, null);
+
         // Assert
         result.Error
             .Should()
             .BeEquivalentTo(expectation);
     }
-    
+
     [Fact]
-    public void Get_ByName_DataContainsSkill_ShouldReturnSkill()
+    public async Task Get_ByName_DataContainsSkill_ShouldReturnSkill()
     {
         // Arrange
-        var name = FakeCurriculumData.Skills[0].Name;
-        
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
-        
+        Context.Skills.AddRange(FakeCurriculumData.Skills);
+        await Context.SaveChangesAsync();
         var expectation = FakeCurriculumData.Skills[0];
-        
+
         // Act
-        var result = _uut.Get(null, name);
-        
+        var result = await _uut.Get(null, expectation.Name);
+
         // Assert
         result.Value
             .Should()
             .BeEquivalentTo(expectation);
     }
-    
+
     [Fact]
-    public void Get_ByName_DataDoesNotContainSkill_ShouldReturnNotFoundError()
+    public async Task Get_ByName_DataDoesNotContainSkill_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
-        
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
-        
+        Context.Skills.AddRange(FakeCurriculumData.Skills);
+        await Context.SaveChangesAsync();
         var expectation = new SkillNotFoundError(name);
-        
+
         // Act
-        var result = _uut.Get(null, name);
-        
+        var result = await _uut.Get(null, name);
+
         // Assert
         result.Error
             .Should()

@@ -4,7 +4,6 @@ using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using FluentAssertions;
 using GraphQL;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.IntegrationTests.GraphQL;
@@ -15,8 +14,10 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
     public async Task Skills_DataContainsSkills_ShouldReturnAllSkills()
     {
         // Arrange
-        CurriculumDataMock.Skills
-            .Returns(FakeCurriculumData.Skills);
+        await Factory.Seed(async db =>
+        {
+            await db.Skills.AddRangeAsync(FakeCurriculumData.Skills);
+        });
 
         var request = new GraphQLRequest
         {
@@ -43,16 +44,13 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
 
         response.Data.Skills
             .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
+            .BeEquivalentTo(expectation);
     }
 
     [Fact]
     public async Task Skills_DataDoesNotContainSkills_ShouldReturnEmptyList()
     {
         // Arrange
-        CurriculumDataMock.Skills
-            .Returns([]);
-
         var request = new GraphQLRequest
         {
             Query =
@@ -83,6 +81,11 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
     public async Task Skill_ById_ShouldReturnSkill()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Skills.AddRangeAsync(FakeCurriculumData.Skills);
+        });
+        
         var expectation = FakeCurriculumData.Skills[0];
         var request = new GraphQLRequest
         {
@@ -96,8 +99,6 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
                     """,
             Variables = new { by = new { id = expectation.Id } }
         };
-
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<SkillResponse>(request);
@@ -116,6 +117,11 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
     public async Task Skill_ByName_ShouldReturnSkill()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Skills.AddRangeAsync(FakeCurriculumData.Skills);
+        });
+        
         var expectation = FakeCurriculumData.Skills[0];
         var request = new GraphQLRequest
         {
@@ -129,8 +135,6 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
                     """,
             Variables = new { by = new { name = expectation.Name } }
         };
-
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<SkillResponse>(request);
@@ -149,6 +153,11 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
     public async Task Skill_ById_Missing_ShouldReturnNotFoundError()
     {
         // Arrange
+        await Factory.Seed(async db =>
+        {
+            await db.Skills.AddRangeAsync(FakeCurriculumData.Skills);
+        });
+        
         var missingId = Guid.CreateVersion7();
         var expectation = new SkillNotFoundError(missingId);
         var request = new GraphQLRequest
@@ -163,8 +172,6 @@ public class SkillQueryTests(ApiWebApplicationFactory factory) : TestBase(factor
                     """,
             Variables = new { by = new { id = missingId } }
         };
-
-        CurriculumDataMock.Skills.Returns(FakeCurriculumData.Skills);
         
         // Act
         var response = await GraphQLClient.SendQueryAsync<SkillResponse>(request);

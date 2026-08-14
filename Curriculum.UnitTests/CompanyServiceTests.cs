@@ -1,130 +1,101 @@
 ﻿using Curriculum.Core.Entities;
+using Curriculum.Infrastructure.Persistence;
 using Curriculum.Services;
 using Curriculum.Services.Errors;
 using Curriculum.Tests.Shared;
 using Curriculum.UnitTests.Setup;
 using FluentAssertions;
-using NSubstitute;
 using Xunit;
 
 namespace Curriculum.UnitTests;
 
 public class CompanyServiceTests : TestBase
 {
-    private readonly CompanyService _uut;
+    private CompanyService _uut;
 
     public CompanyServiceTests()
     {
-        _uut = new(CurriculumDataMock);
-    }
-
-    [Fact]
-    public void GetAll_DataContainsCompanies_ShouldReturnAllCompanies()
-    {
-        // Arrange
-        CurriculumDataMock.Companies
-            .Returns(FakeCurriculumData.Companies);
-
-        var expectation = FakeCurriculumData.Companies;
-        
-        // Act
-        var result = _uut.GetAll();
-
-        // Assert
-        result
-            .Should()
-            .BeEquivalentTo(expectation, opt => opt.WithStrictOrdering());
-    }
-
-    [Fact]
-    public void GetAll_DataDoesNotContainCompanies_ShouldReturnEmptyList()
-    {
-        // Arrange
-        CurriculumDataMock.Companies
-            .Returns([]);
-        
-        // Act
-        var result = _uut.GetAll();
-
-        // Assert
-        result
-            .Should()
-            .BeEmpty();
-    }
-
-    [Fact]
-    public void Get_ById_DataContainsCompany_ShouldReturnCompany()
-    {
-        // Arrange
-        var id = FakeCurriculumData.Companies[0].Id;
-        
-        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
-        
-        var expectation = FakeCurriculumData.Companies[0];
-        
-        // Act
-        var result = _uut.Get(id, null);
-        
-        // Assert
-        result.Value
-            .Should()
-            .BeEquivalentTo(expectation);
+        _uut = new(Context);
     }
     
     [Fact]
-    public void Get_ById_DataDoesNotContainCompany_ShouldReturnNotFoundError()
+    public async Task GetAll_DataContainsCompanies_ShouldReturnAllCompanies()
     {
         // Arrange
-        var id = FakeCurriculumData.Companies[0].Id;
-        
-        CurriculumDataMock.Companies.Returns([]);
-        
-        var expectation = new CompanyNotFoundError(id);
-        
+        Context.Companies.AddRange(FakeCurriculumData.Companies);
+        await Context.SaveChangesAsync();
+
         // Act
-        var result = _uut.Get(id, null);
-        
+        var result = await _uut.GetAll();
+
         // Assert
-        result.Error
-            .Should()
-            .BeEquivalentTo(expectation);
+        result.Should().BeEquivalentTo(FakeCurriculumData.Companies);
     }
-    
+
     [Fact]
-    public void Get_ByName_DataContainsCompany_ShouldReturnCompany()
+    public async Task GetAll_DataDoesNotContainCompanies_ShouldReturnEmptyList()
+    {
+        // Act
+        var result = await _uut.GetAll();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Get_ById_DataContainsCompany_ShouldReturnCompany()
     {
         // Arrange
-        var name = FakeCurriculumData.Companies[0].Name;
-        
-        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
-        
-        var expectation = FakeCurriculumData.Companies[0];
-        
+        var company = FakeCurriculumData.Companies[0];
+        Context.Companies.Add(company);
+        await Context.SaveChangesAsync();
+
         // Act
-        var result = _uut.Get(null, name);
-        
+        var result = await _uut.Get(company.Id, null);
+
         // Assert
-        result.Value
-            .Should()
-            .BeEquivalentTo(expectation);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(company);
     }
-    
+
     [Fact]
-    public void Get_ByName_DataDoesNotContainCompany_ShouldReturnNotFoundError()
+    public async Task Get_ById_Missing_ShouldReturnNotFoundError()
+    {
+        // Arrange
+        var id = Guid.CreateVersion7();
+
+        // Act
+        var result = await _uut.Get(id, null);
+
+        // Assert
+        result.Error.Should().BeEquivalentTo(new CompanyNotFoundError(id));
+    }
+
+    [Fact]
+    public async Task Get_ByName_DataContainsCompany_ShouldReturnCompany()
+    {
+        // Arrange
+        var company = FakeCurriculumData.Companies[0];
+        Context.Companies.Add(company);
+        await Context.SaveChangesAsync();
+
+        // Act
+        var result = await _uut.Get(null, company.Name);
+
+        // Assert
+        result.Value.Should().BeEquivalentTo(company);
+    }
+
+    [Fact]
+    public async Task Get_ByName_Missing_ShouldReturnNotFoundError()
     {
         // Arrange
         const string name = "Missing";
-        
-        CurriculumDataMock.Companies.Returns(FakeCurriculumData.Companies);
-        
-        var expectation = new CompanyNotFoundError(name);
-        
+
         // Act
-        var result = _uut.Get(null, name);
-        
+        var result = await _uut.Get(null, name);
+
         // Assert
-        result.Error
-            .Should()
-            .BeEquivalentTo(expectation);
+        result.Error.Should().BeEquivalentTo(new CompanyNotFoundError(name));
     }
 }

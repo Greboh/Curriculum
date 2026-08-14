@@ -11,6 +11,10 @@ public static class GraphQLConfiguration
             .AddSystemTextJson()
             .AddGraphTypes(typeof(CurriculumSchema).Assembly)
             .AddSchema<CurriculumSchema>()
+            .ConfigureExecutionOptions(opt =>
+            {
+                opt.MaxParallelExecutionCount = 1;
+            })
         );
 
         return services;

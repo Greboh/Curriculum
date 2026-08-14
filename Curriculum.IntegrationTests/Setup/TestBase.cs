@@ -1,14 +1,13 @@
-using Curriculum.Infrastructure.Persistence;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.SystemTextJson;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute.ClearExtensions;
 using Xunit;
 
 namespace Curriculum.IntegrationTests.Setup;
 
-public class TestBase : IClassFixture<ApiWebApplicationFactory>, IDisposable
+[Collection(IntegrationCollection.Name)]
+public class TestBase : IAsyncLifetime
 {
     protected readonly ApiWebApplicationFactory Factory;
     protected readonly TestServer Server;
@@ -16,8 +15,6 @@ public class TestBase : IClassFixture<ApiWebApplicationFactory>, IDisposable
     protected readonly HttpClient HttpClient;
     protected readonly GraphQLHttpClient GraphQLClient;
     
-    protected readonly ICurriculumData CurriculumDataMock;
-
     public TestBase(ApiWebApplicationFactory factory)
     {
         Factory = factory;
@@ -33,21 +30,17 @@ public class TestBase : IClassFixture<ApiWebApplicationFactory>, IDisposable
             new SystemTextJsonSerializer(),
             HttpClient
         );
-        
-        CurriculumDataMock = Scope.ServiceProvider.GetRequiredService<ICurriculumData>();
     }
     
-    public void Dispose()
+    public async Task InitializeAsync()
+        => await Factory.ResetDatabase();
+
+    public Task DisposeAsync()
     {
-        GC.SuppressFinalize(this);
         Scope.Dispose();
         HttpClient.Dispose();
         GraphQLClient.Dispose();
-        ClearMocks();
-    }
-
-    private void ClearMocks()
-    {
-        CurriculumDataMock.ClearSubstitute();
+        
+        return Task.CompletedTask;
     }
 }

@@ -11,14 +11,21 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.9.0" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.9.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0"/>
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.17.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0"/>
         <PackageReference Include="Serilog" Version="4.4.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
     </ItemGroup>
 

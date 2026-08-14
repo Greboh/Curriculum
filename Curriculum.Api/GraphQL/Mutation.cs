@@ -18,26 +18,26 @@ public sealed class Mutation : ObjectGraphType
     {
         Field<SkillType>("createSkill")
             .Argument<NonNullGraphType<StringGraphType>>("name")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var name = ctx.GetArgument<string>("name");
 
-                return ctx.RequestServices!
+                var result = await ctx.RequestServices!
                     .GetRequiredService<ISkillService>()
-                    .Create(name)
-                    .GetValueOrAddError(ctx);
+                    .Create(name, ctx.CancellationToken);
+
+                return result.GetValueOrAddError(ctx);
             });
 
-        Field<SkillType>("deleteSkill")
+        Field<bool>("deleteSkill")
             .Argument<NonNullGraphType<ByIdOrNameInputType>>("by")
-            .Resolve(ctx =>
+            .ResolveAsync(async ctx =>
             {
                 var by = ctx.GetArgument<ByIdOrName>("by");
 
-                return ctx.RequestServices!
+                return await ctx.RequestServices!
                     .GetRequiredService<ISkillService>()
-                    .Delete(by.Id, by.Name)
-                    .GetValueOrAddError(ctx);
+                    .Delete(by.Id, by.Name, ctx.CancellationToken);
             });
     }
 }
